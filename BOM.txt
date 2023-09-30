@@ -1,0 +1,9 @@
+Temperature Sensor: https://www.adafruit.com/product/165
+
+2x IR Reciever Sensor: https://www.adafruit.com/product/157
+
+2x IR LED: https://www.adafruit.com/product/387
+
+CAN Bus Transceiver: https://www.adafruit.com/product/5708?gclid=Cj0KCQjwjt-oBhDKARIsABVRB0zSFgshIYP3o_pJniVi2Kz88qhQmE7OuKr6aAWPMhgd2tS443cU-qMaAilPEALw_wcB
+
+Arduino Micro: https://www.amazon.com/Seeeduino-Smallest-Microcontroller-Interfaces-Compatible/dp/B08CN5YSQF/ref=sxin_16_pa_sp_search_thematic_sspa?content-id=amzn1.sym.26abd864-41de-4663-b956-74ef0d53e0d2%3Aamzn1.sym.26abd864-41de-4663-b956-74ef0d53e0d2&crid=1XE73YDW4J2I1&cv_ct_cx=mini%2Barduino&keywords=mini%2Barduino&pd_rd_i=B08CN5YSQF&pd_rd_r=7a50bd62-0cfc-4140-b4bf-9f715c886d16&pd_rd_w=CtWET&pd_rd_wg=ajewz&pf_rd_p=26abd864-41de-4663-b956-74ef0d53e0d2&pf_rd_r=WHD17XVB2JHDZV7E0MBK&qid=1696092986&sbo=RZvfv%2F%2FHxDF%2BO5021pAnSA%3D%3D&sprefix=mini%2Barduino%2Caps%2C142&sr=1-3-2b34d040-5c83-4b7f-ba01-15975dfb8828-spons&sp_csd=d2lkZ2V0TmFtZT1zcF9zZWFyY2hfdGhlbWF0aWM&th=1
