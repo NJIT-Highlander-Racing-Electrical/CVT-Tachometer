@@ -1,4 +1,4 @@
-# CVT-Tachometer
+ # CVT-Tachometer
 
 A subsystem that measures the RPM of the primary and secondary on the CVT. This subsystem also has a temperature sensor to detect if the CVT is overheating.
 
