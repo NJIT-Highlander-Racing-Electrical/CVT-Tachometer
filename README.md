@@ -13,7 +13,7 @@ A subsystem that measures the RPM of the primary and secondary on the CVT. This 
 
  ## Notes
 
- * Super-Bright IR LEDs must be powered via a transistor. Their output current is 100mA and an ESP32 can only output 40mA via its GPIO pins
+ * Super-Bright IR LEDs support an output current of 100mA with a forward voltage of 1.6V. This means a 14 ohm resistor for a 3.3V power supply or a 34 ohm  resistor for a 5V power supply
  * Using standard infrared photodiodes, we can simply power the IR leds without needing a 38kHz pulse rate
  * Connections from the LEDs/sensors to the main body should be sealed/waterproof
  * The holes in the CVT case should be 20mm
