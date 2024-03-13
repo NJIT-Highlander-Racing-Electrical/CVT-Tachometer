@@ -1,4 +1,4 @@
-float sampleInterval = 1000;  //SAMPLE HOWEVER MANY REVS IN X MILLISECONDS
+float sampleInterval = 250;  //SAMPLE HOWEVER MANY REVS IN X MILLISECONDS
 unsigned long sampleStartTime = 0;
 
 const int primary = 36;      // IR Sensor input pin value
@@ -18,7 +18,7 @@ int secondaryRPM = 0;
 bool primaryGoneLow = true;
 bool secondaryGoneLow = true;
 
-int tempSensor = 35;
+int tempSensor = 34;
 
 
 void setup() {
@@ -34,6 +34,9 @@ void loop() {
 
   while ((millis() - sampleStartTime < sampleInterval)) {
 
+    //Serial.print("PRIMARY VALUE:");
+    //Serial.println(analogRead(primary));
+
     primaryValue = analogRead(primary);
 
     if ((primaryValue > primaryThreshold) && primaryGoneLow) {
@@ -44,7 +47,8 @@ void loop() {
     if (primaryValue < primaryThreshold) primaryGoneLow = true;
 
 
-
+    //Serial.print("SECONDARY VALUE:");
+    //Serial.println(analogRead(secondary));
     secondaryValue = analogRead(secondary);
 
     if ((secondaryValue > secondaryThreshold) && secondaryGoneLow) {
@@ -66,26 +70,14 @@ void loop() {
 
   primaryRPM = primarySampleRevs / sampleInterval * 60000;
 
-  Serial.print("Primary Samples: ");
-  Serial.println(primarySampleRevs);
 
-  Serial.print("primaryRPM: ");
-  Serial.println(primaryRPM);
-
-  Serial.println();
 
   //SECONDARY SERIAL
 
   secondaryRPM = secondarySampleRevs / sampleInterval * 60000;
 
-  Serial.print("secondary Samples: ");
-  Serial.println(secondarySampleRevs);
 
-  Serial.print("secondaryRPM: ");
-  Serial.println(secondaryRPM);
 
-  Serial.println();
-  Serial.println();
 
   //TEMPERATURE SENSOR SERIAL
 
@@ -95,17 +87,26 @@ void loop() {
   float voltage = reading * 3.3;
   voltage /= 4095.0;
   voltage += 0.12;  //this shouldn't be needed, but the ADC of the ESP32 is off by a decent amount
-  Serial.print(voltage);
-  Serial.println(" volts");
+  //Serial.print(voltage);
+  //Serial.println(" volts");
   float temperatureC = (voltage - 0.5) * 100;  //converting from 10 mv per degree wit 500 mV offset
-  Serial.print(temperatureC);
-  Serial.println(" degrees C");
+  //Serial.print(temperatureC);
+  //Serial.println(" degrees C");
   float temperatureF = (temperatureC * 9.0 / 5.0) + 32.0;
-  Serial.print(temperatureF);
-  Serial.println(" degrees F");
 
-  Serial.println();
-  Serial.println();
+
+  Serial.print("primaryRPM:");
+  Serial.print(primaryRPM);
+  Serial.print(",");
+  Serial.print("secondaryRPM:");
+  Serial.print(secondaryRPM);
+  Serial.print(",");
+  Serial.print("Temperature (F):");
+  Serial.println(temperatureF);
+
+
+
+  //Serial.println();
 
   delay(1);
 }
