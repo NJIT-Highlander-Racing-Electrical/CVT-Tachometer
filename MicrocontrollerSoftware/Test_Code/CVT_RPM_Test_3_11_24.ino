@@ -1,15 +1,25 @@
-float sampleInterval = 250;  //SAMPLE HOWEVER MANY REVS IN X MILLISECONDS
+//EXTREMELY IMPORTANT NOTE: THE CAN FREQUENCY ON THIS IS NORMAL 500E3), BUT IT IS "DOUBLED" ON SOME OTHER BOARDS (1000E3) BECAUSE THEY ARE MESSED UP
+
+//Note: these were just for testing at home; use the real values below
+int primaryThreshold = 1500;
+int secondaryThreshold = 1500;
+
+#include <CAN.h>
+#define TX_GPIO_NUM 21
+#define RX_GPIO_NUM 22
+
+float sampleInterval = 500;  //SAMPLE HOWEVER MANY REVS IN X MILLISECONDS
 unsigned long sampleStartTime = 0;
 
-const int primary = 36;      // IR Sensor input pin value
-int primaryValue = 0;        // value read from IR sensor
-int primaryThreshold = 700;  // Above this IR input threshold is considered a HIGH
+const int primary = 36;  // IR Sensor input pin value
+int primaryValue = 0;    // value read from IR sensor
+//int primaryThreshold = 700;  // Above this IR input threshold is considered a HIGH
 int primarySampleRevs = 0;
 int primaryRPM = 0;
 
-const int secondary = 39;      // IR Sensor input pin value
-int secondaryValue = 0;        // value read from IR sensor
-int secondaryThreshold = 700;  // Above this IR input threshold is considered a HIGH
+const int secondary = 39;  // IR Sensor input pin value
+int secondaryValue = 0;    // value read from IR sensor
+//int secondaryThreshold = 700;  // Above this IR input threshold is considered a HIGH
 int secondarySampleRevs = 0;
 int secondaryRPM = 0;
 
@@ -19,94 +29,55 @@ bool primaryGoneLow = true;
 bool secondaryGoneLow = true;
 
 int tempSensor = 34;
+int reading = 0;
+float voltage = 0;
+float temperatureC = 0;
+float temperatureF = 0;
 
 
 void setup() {
   Serial.begin(115200);
   pinMode(tempSensor, INPUT);
+
+  CAN.setPins(RX_GPIO_NUM, TX_GPIO_NUM);
+  if (!CAN.begin(500E3)) {
+    Serial.println("Starting CAN failed!");
+    while (1)
+      ;
+  } else {
+    Serial.println("CAN Initialized");
+  }
 }
 
 void loop() {
 
-  sampleStartTime = millis();
-  primarySampleRevs = 0;
-  secondarySampleRevs = 0;
+  Serial.println("Updating RPMs...");
+  updateRPMs();
+  Serial.println("Updating Temp...");
+  updateTemp();
+  printData();
 
-  while ((millis() - sampleStartTime < sampleInterval)) {
-
-    //Serial.print("PRIMARY VALUE:");
-    //Serial.println(analogRead(primary));
-
-    primaryValue = analogRead(primary);
-
-    if ((primaryValue > primaryThreshold) && primaryGoneLow) {
-      primarySampleRevs++;
-      //Serial.println("primarySampleRevs++");
-      primaryGoneLow = false;
-    }
-    if (primaryValue < primaryThreshold) primaryGoneLow = true;
-
-
-    //Serial.print("SECONDARY VALUE:");
-    //Serial.println(analogRead(secondary));
-    secondaryValue = analogRead(secondary);
-
-    if ((secondaryValue > secondaryThreshold) && secondaryGoneLow) {
-      secondarySampleRevs++;
-      //Serial.println("secondarySampleRevs++");
-      secondaryGoneLow = false;
-    }
-    if (secondaryValue < secondaryThreshold) secondaryGoneLow = true;
-
-
-    delayMicroseconds(500);
-  }
-
-
-  //Sample period has ended here; report on collected data
-  // RPM = (Revolutions/Sample Periods (ms) * milliseconds per minute) = Revolutions Per Minute
-
-  //PRIMARY SERIAL
-
-  primaryRPM = primarySampleRevs / sampleInterval * 60000;
-
-
-
-  //SECONDARY SERIAL
-
-  secondaryRPM = secondarySampleRevs / sampleInterval * 60000;
-
-
-
-
-  //TEMPERATURE SENSOR SERIAL
-
-  analogRead(tempSensor);
-  delay(15);
-  int reading = analogRead(tempSensor);
-  float voltage = reading * 3.3;
-  voltage /= 4095.0;
-  voltage += 0.12;  //this shouldn't be needed, but the ADC of the ESP32 is off by a decent amount
-  //Serial.print(voltage);
-  //Serial.println(" volts");
-  float temperatureC = (voltage - 0.5) * 100;  //converting from 10 mv per degree wit 500 mV offset
-  //Serial.print(temperatureC);
-  //Serial.println(" degrees C");
-  float temperatureF = (temperatureC * 9.0 / 5.0) + 32.0;
-
-
-  Serial.print("primaryRPM:");
-  Serial.print(primaryRPM);
-  Serial.print(",");
-  Serial.print("secondaryRPM:");
-  Serial.print(secondaryRPM);
-  Serial.print(",");
-  Serial.print("Temperature (F):");
-  Serial.println(temperatureF);
-
-
-
-  //Serial.println();
+  canSender();
 
   delay(1);
+}
+
+
+void canSender() {
+  // send packet: id is 11 bits, packet can contain up to 8 bytes of data
+  Serial.print("Sending PRIMARY RPM ... ");
+
+  CAN.beginPacket(0x1F);  //sets the ID
+  CAN.print(primaryRPM);  //prints data to CAN Bus just like Serial.print
+  CAN.endPacket();
+
+  CAN.beginPacket(0x20);
+  CAN.print(secondaryRPM);
+  CAN.endPacket();
+
+  CAN.beginPacket(0x21);
+  CAN.print(temperatureF);
+  CAN.endPacket();
+
+  delay(50);
 }
