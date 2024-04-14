@@ -1,8 +1,8 @@
 //EXTREMELY IMPORTANT NOTE: THE CAN FREQUENCY ON THIS IS NORMAL 500E3), BUT IT IS "DOUBLED" ON SOME OTHER BOARDS (1000E3) BECAUSE THEY ARE MESSED UP
 
 //Note: these were just for testing at home; use the real values below
-int primaryThreshold = 1500;
-int secondaryThreshold = 1500;
+int primaryThreshold = 3000;
+int secondaryThreshold = 3000;
 
 #include <CAN.h>
 #define TX_GPIO_NUM 21
@@ -34,6 +34,12 @@ float voltage = 0;
 float temperatureC = 0;
 float temperatureF = 0;
 
+int updateFrequency = 5000;
+unsigned long lastUpdateTime = 0;
+
+
+int rpmSamplePeriod = 75;
+unsigned long rpmSampleStart = 0;
 
 void setup() {
   Serial.begin(115200);
@@ -51,33 +57,34 @@ void setup() {
 
 void loop() {
 
-  Serial.println("Updating RPMs...");
-  updateRPMs();
-  Serial.println("Updating Temp...");
-  updateTemp();
-  printData();
+  //Serial.println("Updating RPMs...");
+  rpmSampleStart = millis();
+  while ((millis() - rpmSampleStart) < rpmSamplePeriod) {
+    updateRPMs();
+  }
+  //Serial.println("Updating Temp...");
+  if ((millis() - lastUpdateTime) > updateFrequency) {
+    lastUpdateTime = millis();
+    updateTemp();
+  }
 
-  canSender();
+  updateCanbus();
+
+  printData();
 
   delay(1);
 }
 
-
-void canSender() {
-  // send packet: id is 11 bits, packet can contain up to 8 bytes of data
-  Serial.print("Sending PRIMARY RPM ... ");
+void updateCanbus() {
 
   CAN.beginPacket(0x1F);  //sets the ID
   CAN.print(primaryRPM);  //prints data to CAN Bus just like Serial.print
   CAN.endPacket();
 
+  delay(5);
+
   CAN.beginPacket(0x20);
   CAN.print(secondaryRPM);
   CAN.endPacket();
-
-  CAN.beginPacket(0x21);
-  CAN.print(temperatureF);
-  CAN.endPacket();
-
-  delay(50);
+  delay(5);
 }

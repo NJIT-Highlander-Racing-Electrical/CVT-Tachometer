@@ -12,4 +12,9 @@ void updateTemp() {
   //Serial.println(" degrees C");
   temperatureF = (temperatureC * 9.0 / 5.0) + 32.0;
 
+  
+  CAN.beginPacket(0x21);
+  CAN.print(temperatureF);
+  CAN.endPacket();
+
 }

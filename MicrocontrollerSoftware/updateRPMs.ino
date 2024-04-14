@@ -13,8 +13,8 @@ const int rpmTimeout = 1000;  // If no readings from a sensor in one second, set
 void updateRPMs() {
 
   primaryValue = analogRead(primary);
-  Serial.print("PRIMARY VALUE:");
-  Serial.println(primaryValue);
+  //Serial.print("PRIMARY VALUE:");
+  //Serial.println(primaryValue);
 
   if ((primaryValue > primaryThreshold) && primaryGoneLow) {
     currentPrimaryReadTime = millis();
@@ -28,8 +28,8 @@ void updateRPMs() {
 
 
   secondaryValue = analogRead(secondary);
-  Serial.print("SECONDARY VALUE:");
-  Serial.println(secondaryValue);
+  //Serial.print("SECONDARY VALUE:");
+  //Serial.println(secondaryValue);
 
   if ((secondaryValue > secondaryThreshold) && secondaryGoneLow) {
     currentSecondaryReadTime = millis();
@@ -41,11 +41,13 @@ void updateRPMs() {
 
 
 
-  if ((millis() - lastPrimaryReadTime) > rpmTimeout) primaryRPM = 0;
-  else primaryRPM = 60000 / primaryElapsedTime;
+  if ((millis() - lastPrimaryReadTime) > rpmTimeout) {
+    primaryRPM = 0;
+  } else primaryRPM = 60000 / primaryElapsedTime;
 
-  if ((millis() - lastSecondaryReadTime) > rpmTimeout) secondaryRPM = 0;
-  else secondaryRPM = 60000 / secondaryElapsedTime;
+  if ((millis() - lastSecondaryReadTime) > rpmTimeout) {
+    secondaryRPM = 0;
+  } else secondaryRPM = 60000 / secondaryElapsedTime;
 
   delayMicroseconds(250);
 }
