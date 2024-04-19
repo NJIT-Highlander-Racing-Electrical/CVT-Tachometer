@@ -22,8 +22,8 @@ void printData() {
   DEBUG_SERIAL.print("Temperature (F):");
   DEBUG_SERIAL.println(temperatureF);
 
-  //DEBUG_SERIAL.println(primaryValue);
-  //DEBUG_SERIAL.println(secondaryValue);
+  DEBUG_SERIAL.println(primaryValue);
+  DEBUG_SERIAL.println(secondaryValue);
 
   count = 0;
   //}

@@ -192,38 +192,7 @@ void updateRPMs() {
   } else
     primaryRPM = 0;
 
-  bool timeout2 = false;
-  unsigned long  startTime2 = millis();
-  int j = 0;
-  while (secondaryValue < secondaryThreshold && !timeout2) {
-    secondaryValue = analogRead(secondary);
-    if (millis() - startTime2 > 200) {
-      timeout2 = true;
-    }
-  }
-  secondaryGoneLow = false;
 
-  if (!timeout2) {
-    startTime2 = millis();
-    while ((millis() - startTime2) < 200 && j < 2) {
-      secondaryValue = analogRead(secondary);
 
-      if ((secondaryValue > secondaryThreshold) && secondaryGoneLow) {
-        j += 1;
-        secondaryGoneLow = false;
-      }
-
-      if (secondaryValue < secondaryThreshold) secondaryGoneLow = true;
-    }
-
-    if (j != 0) {
-      secondaryRPM = (1000.0 / ((millis() - startTime2) / (float)j)) * 60.0;
-    }
-    else
-      secondaryRPM = 0;
-  } else
-    secondaryRPM = 0;
-
-  primaryRPM = (primaryRPM > 5000) ? 5000 : primaryRPM;
-  secondaryRPM = (secondaryRPM > 5000) ? 5000 : secondaryRPM;
+  primaryRPM = (primaryRPM > 5000) ? 5000 : primaryRPM * .75;
 }

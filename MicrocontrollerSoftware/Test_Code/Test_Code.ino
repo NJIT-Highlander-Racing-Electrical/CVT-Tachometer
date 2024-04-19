@@ -4,12 +4,14 @@
 #define DEBUG_SERIAL if(DEBUG)Serial
 
 //Note: these were just for testing at home; use the real values below
-int primaryThreshold = 2500;
-int secondaryThreshold = 2500;
+int primaryThreshold = 3200;
+int secondaryThreshold = 3200;
 
 #include <CAN.h>
 #define TX_GPIO_NUM 21
 #define RX_GPIO_NUM 22
+
+TaskHandle_t Task1;
 
 float sampleInterval = 500;  //SAMPLE HOWEVER MANY REVS IN X MILLISECONDS
 unsigned long sampleStartTime = 0;
@@ -55,7 +57,79 @@ void setup() {
   } else {
     DEBUG_SERIAL.println("CAN Initialized");
   }
+
+
+
+  //create a task that will be executed in the Task1code() function, with priority 1 and executed on core 0
+  xTaskCreatePinnedToCore(
+                    Task1code,   /* Task function. */
+                    "Task1",     /* name of task. */
+                    10000,       /* Stack size of task */
+                    NULL,        /* parameter of the task */
+                    1,           /* priority of the task */
+                    &Task1,      /* Task handle to keep track of created task */
+                    0);          /* pin task to core 0 */                  
+  delay(500); 
+
 }
+
+
+void Task1code( void * pvParameters ){
+  Serial.print("Task1 running on core ");
+  Serial.println(xPortGetCoreID());
+
+  for(;;) {
+   
+
+
+
+  bool timeout2 = false;
+  unsigned long  startTime2 = millis();
+  int j = 0;
+  while (secondaryValue < secondaryThreshold && !timeout2) {
+    secondaryValue = analogRead(secondary);
+    if (millis() - startTime2 > 200) {
+      timeout2 = true;
+    }
+  }
+  secondaryGoneLow = false;
+
+  if (!timeout2) {
+    startTime2 = millis();
+    while ((millis() - startTime2) < 200 && j < 2) {
+      secondaryValue = analogRead(secondary);
+
+      if ((secondaryValue > secondaryThreshold) && secondaryGoneLow) {
+        j += 1;
+        secondaryGoneLow = false;
+      }
+
+      if (secondaryValue < secondaryThreshold) secondaryGoneLow = true;
+    }
+
+    if (j != 0) {
+      secondaryRPM = (1000.0 / ((millis() - startTime2) / (float)j)) * 60.0;
+    }
+    else
+      secondaryRPM = 0;
+  } else
+    secondaryRPM = 0;
+
+
+  secondaryRPM = (secondaryRPM > 5000) ? 5000 : secondaryRPM;
+
+
+  } 
+}
+
+
+
+
+
+
+
+
+
 
 int i = 0, m = 1;
 void loop() {
