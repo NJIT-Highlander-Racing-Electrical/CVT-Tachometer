@@ -8,7 +8,7 @@ Tachometer::Tachometer() {
     this->arrayPointer = 0;
 }
 
-void Tachometer::init(int pin, int threshold) {
+void Tachometer::init(int pin, double threshold) {
   this->sensorPin = pin;
   this->irRecieverThreshold = threshold;
 }
@@ -25,8 +25,6 @@ void Tachometer::updateTachometer() {
     } else {
       this->arrayPointer = 0;
     }
-  } else if(analogRead(this->sensorPin) < this->irRecieverThreshold) {
-    this->lastUpdateOn = false;
   }
 }
 
@@ -39,8 +37,4 @@ double Tachometer::getRPM() {
   int timePerRev = totalTime / this->dataBuffer;
 
   return 1000 / timePerRev;
-}
-
-bool Tachometer::getIROn() {
-  return this->lastUpdateOn;
 }
