@@ -2,9 +2,9 @@
 
 int overheatingTempThreshold = 80;
 
-int tempSensor = A0;
-int irRecieverEngine = A1;
-int irRecieverOutput = A2;
+int tempSensor = A5;
+int irRecieverEngine = A0;
+int irRecieverOutput = A7;
 
 int irLEDPin = 10;
 
@@ -12,21 +12,34 @@ Tachometer engineRPM;
 Tachometer outputRPM;
 
 void setup() {
-  pinMode(irLEDPin, OUTPUT);
-  digitalWrite(irLEDPin, HIGH);
+  Serial.begin(115200);
+  Serial.println("test");
 
-  engineRPM.init(irRecieverEngine, 0.5);
-  outputRPM.init(irRecieverOutput, 0.5);
+  //pinMode(irLEDPin, OUTPUT);
+  //digitalWrite(irLEDPin, HIGH);
+  
+  pinMode(irRecieverEngine, INPUT);
+
+  engineRPM.init(irRecieverEngine, 3400);
+  outputRPM.init(irRecieverOutput, 3400);
 }
 
 void loop() {
-  if (calculateTemp > overheatingTempThreshold) {
+  if (int(calculateTemp) > overheatingTempThreshold) {
     // Bad Stuff... (Activate LED on Dashboard)
   }
 
+  engineRPM.updateTachometer();
+  outputRPM.updateTachometer();
+
+  //int sensorValue = analogRead(irRecieverEngine);
+  Serial.println(engineRPM.getIROn());
+  Serial.println(engineRPM.getRPM());
+  delay(100);
+
   // Send RPM Data to CAN-Bus
-  engineRPM.getRPM();
-  outputRPM.getRPM();
+  //engineRPM.getRPM();
+  //outputRPM.getRPM();
 }
 
 double calculateTemp() {

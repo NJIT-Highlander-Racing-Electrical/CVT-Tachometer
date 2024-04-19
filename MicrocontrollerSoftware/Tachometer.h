@@ -5,7 +5,7 @@
 class Tachometer {
   
   private:
-    double irRecieverThreshold;
+    int irRecieverThreshold;
     int dataBuffer;
     int sensorPin;
 
@@ -16,8 +16,9 @@ class Tachometer {
 
   public:
     Tachometer();
-    void init(int pin, double threshold);
+    void init(int pin, int threshold);
     void updateTachometer();
     double getRPM();
+    bool getIROn();
 };
 #endif
