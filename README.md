@@ -30,9 +30,3 @@ A subsystem that measures the RPM of the primary and secondary on the CVT. This 
 * Green: TMP36 OUT
 * Brown/White: TMP36 3.3V VCC
 * Brown: TMP36 GND
-
-### Aviation Plug Connector
-* +12V on Pin 1
-* GND on Pin 2
-* CAN-H on Pin 3
-* CAN-L on Pin 4
