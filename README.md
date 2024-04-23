@@ -19,6 +19,10 @@ A subsystem that measures the RPM of the primary and secondary on the CVT. This 
  * The holes in the CVT case should be 20mm
  * The infrared diode appears to act like a variable resistor, but voltage polarity must be + on short leg and - on long leg
 
+ * The software utilizes the dual core functionality of the ESP32
+   * Core 1 reads primaryRPM and deals with CAN-Bus communication
+   * Core 0 solely reads secondaryRPM
+
 
 ## Electrical Wiring Notes
 
