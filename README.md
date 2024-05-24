@@ -25,6 +25,8 @@ A subsystem that measures the RPM of the primary and secondary on the CVT. This 
 
 ### Known Issues 
  * One issue noticed during the testing phase was that the analog sensor readings were constantly peaking (4095). The resistor divider for the IR receivers needed to be adjusted to roughly 2700 ohms
+ * Analog reads are not ideal for this type of data acquisition. Fast readings are needed, and there should be no margin for error about whether a reading falls within a range
+ * Digital readings with a hall sensor, laser/photodiode setup, engine spark plug with octocoupler, etc would be preferred for next year
 
 
 ## Electrical Wiring Notes
