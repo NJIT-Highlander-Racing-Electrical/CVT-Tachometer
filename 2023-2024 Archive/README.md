@@ -23,7 +23,7 @@ A subsystem that measures the RPM of the primary and secondary on the CVT. This 
    * Core 1 reads primaryRPM and deals with CAN-Bus communication
    * Core 0 solely reads secondaryRPM
 
-### Known Issues 
+## Known Issues 
  * One issue noticed during the testing phase was that the analog sensor readings were constantly peaking (4095). The resistor divider for the IR receivers needed to be adjusted to roughly 2700 ohms
 
 
