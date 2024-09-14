@@ -176,6 +176,24 @@ void updateRPMs() {
     while ((millis() - startTime) < 200 && i < 2) {
       primaryValue = analogRead(primary);
 
+      // Update upper bound and threshold
+      if (primaryValue > primaryMaxReading) {
+        primaryMaxReading = primaryValue;
+        // Calculate midpoint
+        int minMaxDifference = primaryMaxReading - primaryMinReading;
+        // Set threshold to midpoint of min and new max
+        primaryThreshold = primaryMinReading + (minMaxDifference/2);
+      }
+      
+      // Update lower bound and threshold
+      if (primaryValue < primaryMinReading) {
+        primaryMinReading = primaryValue;
+        //Calculate midpoint
+        int minMaxDifference = primaryMaxReading - primaryMinReading;
+        //Set threshold to midpoint of new min and max
+        primaryThreshold = primaryMinReading + (minMaxDifference/2);
+      }
+
       if ((primaryValue > primaryThreshold) && primaryGoneLow) {
         i += 1;
         primaryGoneLow = false;
