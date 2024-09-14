@@ -3,9 +3,21 @@
 #define DEBUG true
 #define DEBUG_SERIAL if(DEBUG)Serial
 
-//Note: these were just for testing at home; use the real values below
-int primaryThreshold = 3200;
-int secondaryThreshold = 1000;
+//Note: these are old static values that have been updated with new dyanmic values
+//int primaryThreshold = 3200;
+//int secondaryThreshold = 1000;
+
+// Initialize these thresholds at zero; they will be set accordingly later
+int primaryThreshold = 0;
+int secondaryThreshold = 0;
+
+// Initialize bounds of sensor readings
+// These will be continuously updated as the IR sensors gather new data
+// The midpoint of these will become the thresholds for LOW/HIGH
+int primaryMinReading = 0;
+int primaryMaxReading = 0;
+int secondaryMinReading = 0;
+int secondaryMaxReading = 0;
 
 #include <CAN.h>
 #define TX_GPIO_NUM 21
@@ -71,6 +83,12 @@ void setup() {
                     0);          /* pin task to core 0 */                  
   delay(500); 
 
+// Establish a starting point for min and max
+primaryMinReading = analogRead(primary);
+primaryMaxReading = analogRead(primary);
+secondaryMinReading = analogRead(secondary);
+secondaryMaxReading = analogRead(secondary);
+  
 }
 
 
@@ -135,6 +153,7 @@ int i = 0, m = 1;
 void loop() {
 
   //DEBUG_SERIAL.println("Updating RPMs...");
+
   updateRPMs();
   
   /*primaryRPM = i;
