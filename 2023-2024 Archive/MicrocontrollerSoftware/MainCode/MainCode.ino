@@ -117,6 +117,24 @@ void Task1code( void * pvParameters ){
     while ((millis() - startTime2) < 200 && j < 2) {
       secondaryValue = analogRead(secondary);
 
+      // Update upper bound and threshold
+      if (secondaryValue > secondaryMaxReading) {
+        secondaryMaxReading = secondaryValue;
+        // Calculate midpoint
+        int minMaxDifference = secondaryMaxReading - secondaryMinReading;
+        // Set threshold to midpoint of min and new max
+        secondaryThreshold = secondaryMinReading + (minMaxDifference/2);
+      }
+      
+      // Update lower bound and threshold
+      if (secondaryValue < secondaryMinReading) {
+        secondaryMinReading = secondaryValue;
+        //Calculate midpoint
+        int minMaxDifference = secondaryMaxReading - secondaryMinReading;
+        //Set threshold to midpoint of new min and max
+        secondaryThreshold = secondaryMinReading + (minMaxDifference/2);
+      }
+        
       if ((secondaryValue > secondaryThreshold) && secondaryGoneLow) {
         j += 1;
         secondaryGoneLow = false;
