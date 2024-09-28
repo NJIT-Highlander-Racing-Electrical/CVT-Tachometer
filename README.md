@@ -2,6 +2,14 @@
 
 A subsystem that measures the RPM of the primary and secondary on the CVT. This subsystem also has a temperature sensor to detect if the CVT is overheating.
 
+
+## 2024-2025 Design Goals
+
+* Everything last year seemed to work well, but a few improvements to the existing system could be made:
+  * Software - smoothing/averaging can be implemented to make the dashboard displays more visually appealing
+  * Sensor Enclosures - the sensor housings should be made out of something other than PLA
+  * Wiring - the wiring from the sensors to the main electronics housing were tough to do. A small PCB for the electronics with a connector/cable would be nicer than hand soldering wires.
+
 ## Hardware Components:
 
 * IR Sensors that point at primary and secondary.
