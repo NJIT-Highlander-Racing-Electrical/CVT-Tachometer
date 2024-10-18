@@ -1,5 +1,9 @@
 void updatePrimaryRPMs() {
 
+  if ((millis() - lastPrimaryReadTime) > timeoutThreshold) {
+    primaryRPM = 0;
+  }
+
   // Update IR sensor reading
   primaryValue = analogRead(primary);
 
@@ -10,9 +14,6 @@ void updatePrimaryRPMs() {
 
     // Find elapsed time between current reading and previous reading, then calculate RPM from that
     primaryRPM = (1.00 / (float(currentPrimaryReadTime - lastPrimaryReadTime) / 1000.0)) * 60.0;
-
-    // Maybe add some smoothing/filtering here to average readings
-    // Or a timeout so RPM returns to zero
 
     lastPrimaryReadTime = currentPrimaryReadTime;
     primaryGoneLow = false;

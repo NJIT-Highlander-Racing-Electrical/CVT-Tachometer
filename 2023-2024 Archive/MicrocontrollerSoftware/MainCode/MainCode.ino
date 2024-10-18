@@ -17,16 +17,16 @@
 #include <CAN.h>
 #define TX_GPIO_NUM 21 // CAN TX pin
 #define RX_GPIO_NUM 22 // CAN RX pin
-#define canSendFreq = 25; // Number of CAN messages to be sent per second (in regular intervals)
+#define canSendFreq 25 // Number of CAN messages to be sent per second (in regular intervals)
 
 // Set DEBUG to false for final program; Serial is just used for troubleshooting
 #define DEBUG true
 #define DEBUG_SERIAL \
   if (DEBUG) Serial
 
-#define primary 36; // IR Sensor input pin value
-#define secondary 39;  // IR Sensor input pin value
-#define tempSensor 34; // Temp sensor GPIO pin
+#define primary 36 // IR Sensor input pin value
+#define secondary 39  // IR Sensor input pin value
+#define tempSensor 34 // Temp sensor GPIO pin
 
 // Task to run on second core (dual-core processing)
 TaskHandle_t Task1;
@@ -54,6 +54,8 @@ int secondaryValue = 0;    // value read from IR sensor
 unsigned long currentSecondaryReadTime = 2; // Initialized to 2 to prevent initial divide by zero error
 unsigned long lastSecondaryReadTime = 1; // Initialized to 1 to prevent initial divide by zero error
 int secondaryRPM = 0; // calculated RPM value based on elapsed time between readings
+
+const int timeoutThreshold = 1000; // If there are no readings in timeoutThreshold milliseconds, reset RPM to zero
 
 // Makes sure that the input goes LOW before counting another revolution
 // Prevents double counting of revolution
@@ -112,9 +114,12 @@ void Task1code(void* pvParameters) {
 
   for (;;) {
 
+if ((millis() - lastSecondaryReadTime) > timeoutThreshold) {
+    secondaryRPM = 0;
+  }
+
     // Update IR sensor reading
     secondaryValue = analogRead(secondary);
-
 
     // If the sensor detects the white stripe and we were not already on the stripe
     if ((secondaryValue > secondaryUpperThreshold) && secondaryGoneLow) {
