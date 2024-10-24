@@ -15,18 +15,18 @@
 */
 
 #include <CAN.h>
-#define TX_GPIO_NUM 21 // CAN TX pin
-#define RX_GPIO_NUM 22 // CAN RX pin
-#define canSendFreq 25 // Number of CAN messages to be sent per second (in regular intervals)
+#define TX_GPIO_NUM 21  // CAN TX pin
+#define RX_GPIO_NUM 22  // CAN RX pin
+#define canSendFreq 10  // Number of CAN messages to be sent per second (in regular intervals)
 
 // Set DEBUG to false for final program; Serial is just used for troubleshooting
 #define DEBUG true
 #define DEBUG_SERIAL \
   if (DEBUG) Serial
-
-#define primary 36 // IR Sensor input pin value
-#define secondary 39  // IR Sensor input pin value
-#define tempSensor 34 // Temp sensor GPIO pin
+  
+#define primary 36     // IR Sensor input
+#define secondary 39   // IR Sensor input pin value
+#define tempSensor 34  // Temp sensor GPIO pin
 
 // Task to run on second core (dual-core processing)
 TaskHandle_t Task1;
@@ -45,34 +45,43 @@ int primaryUpperThreshold = 0;
 int secondaryLowerThreshold = 0;
 int secondaryUpperThreshold = 0;
 
-int primaryValue = 0;    // value read from IR sensor
-unsigned long currentPrimaryReadTime = 2; // Initialized to 2 to prevent initial divide by zero error
-unsigned long lastPrimaryReadTime = 1; // Initialized to 1 to prevent initial divide by zero error
-int primaryRPM = 0; // calculated RPM value based on elapsed time between readings
+int primaryValue = 0;                      // value read from IR sensor
+unsigned long currentPrimaryReadTime = 2;  // Initialized to 2 to prevent initial divide by zero error
+unsigned long lastPrimaryReadTime = 1;     // Initialized to 1 to prevent initial divide by zero error
+int primaryRPM = 0;                        // calculated RPM value based on elapsed time between readings
 
-int secondaryValue = 0;    // value read from IR sensor
-unsigned long currentSecondaryReadTime = 2; // Initialized to 2 to prevent initial divide by zero error
-unsigned long lastSecondaryReadTime = 1; // Initialized to 1 to prevent initial divide by zero error
-int secondaryRPM = 0; // calculated RPM value based on elapsed time between readings
+const int primaryNumReadings = 5;
+int readings[primaryNumReadings];
+int primaryIndex = 0;
+int primaryCount = 0;
+int primaryTotal = 0;
 
-const int timeoutThreshold = 1000; // If there are no readings in timeoutThreshold milliseconds, reset RPM to zero
+
+int secondaryValue = 0;                      // value read from IR sensor
+unsigned long currentSecondaryReadTime = 2;  // Initialized to 2 to prevent initial divide by zero error
+unsigned long lastSecondaryReadTime = 1;     // Initialized to 1 to prevent initial divide by zero error
+int secondaryRPM = 0;                        // calculated RPM value based on elapsed time between readings
+
+const int timeoutThreshold = 1000;  // If there are no readings in timeoutThreshold milliseconds, reset RPM to zero
 
 // Makes sure that the input goes LOW before counting another revolution
 // Prevents double counting of revolution
 bool primaryGoneLow = true;
 bool secondaryGoneLow = true;
 
-int reading = 0; // Analog reading from temp sensor
-float voltage = 0; // Calculated voltage based on analog reading
+const int tempUpdateFrequency = 1000; // Get a new temperature reading every 1000 milliseconds
+unsigned long lastTempReading = 0; // Variable for last time temperature sensor has been polled
+int reading = 0;    // Analog reading from temp sensor
+float voltage = 0;  // Calculated voltage based on analog reading
 float temperatureC = 0;
 float temperatureF = 0;
 
-double lastSend = 0; // millis() reading of last CAN message send; use to send CAN messages at regular interval
-int canSendDelay = 1000/canSendFreq; // Calculated millisecond delay between CAN messages based off of canSendFreq;
+double lastSend = 0;                    // millis() reading of last CAN message send; use to send CAN messages at regular interval
+int canSendDelay = 1000 / canSendFreq;  // Calculated millisecond delay between CAN messages based off of canSendFreq;
 
 
 void setup() {
-  DEBUG_SERIAL.begin(115200);
+  DEBUG_SERIAL.begin(921600);
 
   pinMode(tempSensor, INPUT);
 
@@ -114,23 +123,20 @@ void Task1code(void* pvParameters) {
 
   for (;;) {
 
-if ((millis() - lastSecondaryReadTime) > timeoutThreshold) {
-    secondaryRPM = 0;
-  }
+    if ((millis() - lastSecondaryReadTime) > timeoutThreshold) {
+      secondaryRPM = 0;
+    }
 
     // Update IR sensor reading
     secondaryValue = analogRead(secondary);
 
     // If the sensor detects the white stripe and we were not already on the stripe
     if ((secondaryValue > secondaryUpperThreshold) && secondaryGoneLow) {
-      // Mark the current time 
+      // Mark the current time
       currentSecondaryReadTime = millis();
 
       // Find elapsed time between current reading and previous reading, then calculate RPM from that
       secondaryRPM = (1.00 / (float(currentSecondaryReadTime - lastSecondaryReadTime) / 1000.0)) * 60.0;
-
-      // Maybe add some smoothing/filtering here to average readings
-      // Or a timeout so RPM returns to zero
 
       lastSecondaryReadTime = currentSecondaryReadTime;
       secondaryGoneLow = false;
@@ -174,12 +180,20 @@ if ((millis() - lastSecondaryReadTime) > timeoutThreshold) {
 void loop() {
 
   updatePrimaryRPMs();
+
+  if ((millis() - lastTempReading) > tempUpdateFrequency) {
   updateTemp();
+  lastTempReading = millis();
+  primaryGoneLow = false;
+  }
+
   printData();
 
   if (millis() - lastSend > canSendDelay) {
     canSender();
     lastSend = millis();
+    primaryGoneLow = false;
+
   }
 }
 
@@ -188,21 +202,20 @@ void canSender() {
   // send packet: id is 11 bits, packet can contain up to 8 bytes of data
 
   CAN.beginPacket(0x1F);                              //sets the ID
-  CAN.print((primaryRPM < 0) ? 0 : primaryRPM / 10);  //prints data to CAN Bus just like Serial.print
+  CAN.print(primaryTotal / primaryCount / 10);  //prints data to CAN Bus just like Serial.print
   CAN.endPacket();
 
   // Delay between packets to not overload CAN bus with two immediate messages
-  delay(5);
+  delay(2);
 
   CAN.beginPacket(0x20);
   CAN.print((secondaryRPM < 0) ? 0 : secondaryRPM / 10);
   CAN.endPacket();
 
-  //delay(5);
 
-  /*CAN.beginPacket(0x21);
+  delay(2);
+
+  CAN.beginPacket(0x21);
   CAN.print(temperatureF);
   CAN.endPacket();
-
-  delay(5);*/
 }

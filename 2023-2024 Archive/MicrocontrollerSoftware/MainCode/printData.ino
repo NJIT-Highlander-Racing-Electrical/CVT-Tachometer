@@ -12,8 +12,8 @@ void printData() {
   DEBUG_SERIAL.print(primaryValue);
   DEBUG_SERIAL.print(", ");
 
-  DEBUG_SERIAL.print("primRPM:");
-  DEBUG_SERIAL.print(primaryRPM);
+  DEBUG_SERIAL.print("primRPMAverage:");
+  DEBUG_SERIAL.print(primaryTotal / primaryCount);
   DEBUG_SERIAL.print(", ");
 
   DEBUG_SERIAL.print("secLowerThreshold:");

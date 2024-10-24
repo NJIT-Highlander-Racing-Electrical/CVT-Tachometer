@@ -1,6 +1,4 @@
 void updateTemp() {
-  analogRead(tempSensor);
-  delay(15);
   reading = analogRead(tempSensor);
   voltage = reading * 3.3;
   voltage /= 4095.0;
@@ -11,10 +9,5 @@ void updateTemp() {
   //Serial.print(temperatureC);
   //Serial.println(" degrees C");
   temperatureF = (temperatureC * 9.0 / 5.0) + 32.0;
-
-  
-  CAN.beginPacket(0x21);
-  CAN.print(temperatureF);
-  CAN.endPacket();
 
 }
