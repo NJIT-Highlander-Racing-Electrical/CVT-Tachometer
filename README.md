@@ -17,6 +17,7 @@ A subsystem that measures the RPM of the primary and secondary on the CVT. This 
        * the wiring from the sensors to the main electronics housing were tough to do
        * A small PCB for the electronics would be nicer than hand soldering wires
        * A connector would also be good so that they can be removed/swapped easily
+            * Maybe 1x4 or 1x5 or 1x6 JST depending on how many conductors we need going to each board
 
 ## Hardware Components:
 
