@@ -6,7 +6,9 @@ A subsystem that measures the RPM of the primary and secondary on the CVT. This 
 ## 2024-2025 Design Goals
 
 * Everything last year seemed to work well, but a few improvements to the existing system could be made:
-  * Software - smoothing/averaging can be implemented to make the dashboard displays more visually appealing
+  * Software
+       * smoothing/averaging can be implemented to make the dashboard displays more visually appealing
+        * Modify code to make readings more consistent with fewer incorrect outliers 
   * Sensor Enclosures
        * the sensor housings should be made out of something other than PLA
        * they should be able to fit custom PCBs with connectors
