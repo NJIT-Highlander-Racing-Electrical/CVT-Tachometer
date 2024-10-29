@@ -11,7 +11,10 @@ A subsystem that measures the RPM of the primary and secondary on the CVT. This 
        * the sensor housings should be made out of something other than PLA
        * they should be able to fit custom PCBs with connectors
        * the hood around the emitter and receiver should be enlarged to prevent anything else from reflecting other than what is directly in front
-  * Wiring - the wiring from the sensors to the main electronics housing were tough to do. A small PCB for the electronics with a connector/cable would be nicer than hand soldering wires.
+  * PCBs for sensors
+       * the wiring from the sensors to the main electronics housing were tough to do
+       * A small PCB for the electronics would be nicer than hand soldering wires
+       * A connector would also be good so that they can be removed/swapped easily
 
 ## Hardware Components:
 
