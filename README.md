@@ -37,6 +37,7 @@ A subsystem that measures the RPM of the primary and secondary on the CVT. This 
 
  * The software utilizes the dual core functionality of the ESP32
    * Core 1 reads primaryRPM and deals with CAN-Bus communication
+      * It is very important that all other processing is kept to a minimum to ensure primaryRPM is accurately read
    * Core 0 solely reads secondaryRPM
 
 ### Previous Issues 
