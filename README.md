@@ -19,7 +19,7 @@ A subsystem that measures the RPM of the primary and secondary on the CVT. This 
        * A connector would also be good so that they can be removed/swapped easily
             * Maybe 1x4 or 1x5 or 1x6 JST depending on how many conductors we need going to each board
   * Additional Note
-     * On the IR receiver output, have it split to two GPIO. One leg has a potentiometer (0-10k?) between the output and the GPIO for finding the optimal resistance. The other GPIO has a fixed resistor that can be added after the fact that will be used in the long term. 
+     * On the IR receiver output, have it split to two GPIO. One leg has a potentiometer (0-10k?) between the output and the GPIO for finding the optimal resistance. Also make sure it has a small series resistor to prevent resistance from dropping completely to zero. The other GPIO has a fixed resistor that can be added after the fact that will be used in the long term. 
 
 ## Hardware Components:
 
