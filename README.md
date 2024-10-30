@@ -31,9 +31,9 @@ A subsystem that measures the RPM of the primary and secondary on the CVT. This 
  ## Notes
 
  * Super-Bright IR LEDs support an output current of 100mA with a forward voltage of 1.6V. We are using a 22 ohm resistor for a current of roughly 80 mA
-        * 5V -> IR LED -> Resistor -> Ground
+    * 5V -> IR LED -> Resistor -> Ground
  * Using standard infrared photodiodes, we can simply power the IR leds without needing a 38kHz pulse rate
-         * 5V -> IR Diode -> Resistor -> Ground (sample signal between diode and resistor voltage divider)
+    * 5V -> IR Diode -> Resistor -> Ground (sample signal between diode and resistor voltage divider)
  * Temperature sensor is TMP36
         * 5V - > TMP36 VCC, GND -> TMP 36 GND, VOUT -> GPIO
  * Connections from the LEDs/sensors to the main body should be sealed/waterproof
