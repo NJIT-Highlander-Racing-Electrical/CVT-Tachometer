@@ -35,7 +35,7 @@ A subsystem that measures the RPM of the primary and secondary on the CVT. This 
  * Using standard infrared photodiodes, we can simply power the IR leds without needing a 38kHz pulse rate
     * 5V -> IR Diode -> Resistor -> Ground (sample signal between diode and resistor voltage divider)
  * Temperature sensor is TMP36
-        * 5V - > TMP36 VCC, GND -> TMP 36 GND, VOUT -> GPIO
+    * 5V - > TMP36 VCC, GND -> TMP 36 GND, VOUT -> GPIO
  * Connections from the LEDs/sensors to the main body should be sealed/waterproof
  * The holes in the CVT case should be 20mm
  * The infrared diode appears to act like a variable resistor, but voltage polarity must be + on short leg and - on long leg
