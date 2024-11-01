@@ -9,6 +9,7 @@ A subsystem that measures the RPM of the primary and secondary on the CVT. This 
   * Software
        * Improve program to do more analog reads and spend less time processing data
           * This may involve constants that are only calculated once during setup, faster math functions, fewer delays, etc
+       * Use the analog reads for IR sensors on both ADC1 and ADC2 to prevent any issues. 
   * Sensor Enclosures
        * the sensor housings should be made out of something other than PLA
        * they should be able to fit custom PCBs with connectors
