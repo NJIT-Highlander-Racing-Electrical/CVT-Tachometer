@@ -3068,6 +3068,16 @@
 	)
 	(wire
 		(pts
+			(xy 113.03 73.66) (xy 115.57 73.66)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "443de24c-1174-41e4-ad93-e55b97a834b2")
+	)
+	(wire
+		(pts
 			(xy 156.21 132.08) (xy 167.64 132.08)
 		)
 		(stroke
@@ -3138,16 +3148,6 @@
 	)
 	(wire
 		(pts
-			(xy 113.03 99.06) (xy 115.57 99.06)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "73ec4625-494e-47ec-bf20-dfa022b47802")
-	)
-	(wire
-		(pts
 			(xy 156.21 148.59) (xy 167.64 148.59)
 		)
 		(stroke
@@ -3195,16 +3195,6 @@
 			(type default)
 		)
 		(uuid "8059ab39-2142-41c1-92f3-def000c90d5d")
-	)
-	(wire
-		(pts
-			(xy 113.03 73.66) (xy 115.57 73.66)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "82fa20ec-8b08-4466-8561-947a75ec2d2e")
 	)
 	(wire
 		(pts
@@ -3265,6 +3255,16 @@
 			(type default)
 		)
 		(uuid "bfe74de9-0fe0-4aed-8632-edc65915dfee")
+	)
+	(wire
+		(pts
+			(xy 113.03 93.98) (xy 115.57 93.98)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "cb965d5e-f519-4e55-b27a-99bf53298068")
 	)
 	(wire
 		(pts
@@ -3336,7 +3336,7 @@
 		)
 		(uuid "fabb1be8-0193-4e59-b4de-f6c1c165f7de")
 	)
-	(label "TMP36_1"
+	(label "Ir2"
 		(at 115.57 73.66 0)
 		(fields_autoplaced yes)
 		(effects
@@ -3345,7 +3345,18 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "4200bbc0-c59c-4c46-9dcd-3453b4d3e46b")
+		(uuid "11476204-28d7-4b3f-af2d-a3201cbe7601")
+	)
+	(label "CanTX"
+		(at 115.57 93.98 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "22420b37-e4fc-47b8-989c-f4721ed438bc")
 	)
 	(label "Ir1"
 		(at 115.57 109.22 0)
@@ -3402,17 +3413,6 @@
 		)
 		(uuid "857e82bd-526d-4063-ad29-062b867f3f5c")
 	)
-	(label "CanTX"
-		(at 115.57 99.06 0)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "8b48bca3-767c-4b79-8153-94e7088db212")
-	)
 	(label "CanL"
 		(at 140.97 87.63 180)
 		(fields_autoplaced yes)
@@ -3423,17 +3423,6 @@
 			(justify right bottom)
 		)
 		(uuid "8e587fd0-cf6a-4133-aa0a-2565785275f8")
-	)
-	(label "Ir2"
-		(at 115.57 106.68 0)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "94492163-db86-468d-bb60-78368c277ddb")
 	)
 	(label "CanTX"
 		(at 137.16 76.2 180)
@@ -3511,6 +3500,17 @@
 			(justify left bottom)
 		)
 		(uuid "d45db590-4910-4f57-8433-2ebc9315d805")
+	)
+	(label "TMP36_1"
+		(at 115.57 106.68 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "f92fd85a-8720-4f9a-9361-a7a70b63a91b")
 	)
 	(symbol
 		(lib_id "Mechanical:MountingHole")
