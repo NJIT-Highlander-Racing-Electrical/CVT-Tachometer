@@ -1953,7 +1953,7 @@
 		(uuid "595acfe5-141c-42e7-9291-cc9186047fcc")
 		(at 156.54 60)
 		(property "Reference" "J7"
-			(at -2.025 -3.585 360)
+			(at -2.025 -3.585 0)
 			(layer "F.SilkS")
 			(hide yes)
 			(uuid "92be6def-3a0e-4551-aab1-f4d8be973549")
@@ -1965,7 +1965,7 @@
 			)
 		)
 		(property "Value" "SystemInput"
-			(at 0.5 3.05 360)
+			(at 0.5 3.05 0)
 			(layer "F.Fab")
 			(uuid "887b8cd8-1b8c-4fcd-8bd6-401814e74215")
 			(effects
@@ -1976,7 +1976,7 @@
 			)
 		)
 		(property "Footprint" "CVT:JST4Pin"
-			(at 0 0 360)
+			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
 			(uuid "4c76452a-8af3-4289-a66e-2ec9d28eba68")
@@ -1988,7 +1988,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 0 0 360)
+			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
 			(uuid "68c25cc8-8dc5-4cdf-aef9-5b78ba90399d")
@@ -2000,7 +2000,7 @@
 			)
 		)
 		(property "Description" "Generic connector, single row, 01x04, script generated"
-			(at 0 0 360)
+			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
 			(uuid "f02b5a60-e9b8-4412-91f5-0712a0106b2b")
