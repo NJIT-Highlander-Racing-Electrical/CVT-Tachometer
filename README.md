@@ -62,9 +62,9 @@ A subsystem that measures the RPM of the primary and secondary on the CVT. This 
 
 ### Pins to sensor modules
 
-Pin 1: +5V
-Pin 2: GND
-Pin 3: TMP36 Output
-Pin 4: IR Emitter Return Line
-Pin 5: IR Receiver Return Line
+* Pin 1: +5V
+* Pin 2: GND
+* Pin 3: TMP36 Output
+* Pin 4: IR Emitter Return Line
+* Pin 5: IR Receiver Return Line
 
