@@ -1,0 +1,7 @@
+(sym_lib_table
+  (version 7)
+  (lib (name "2x1")(type "KiCad")(uri "${KIPRJMOD}/Libraries/Synbol/2x1.kicad_sym")(options "")(descr ""))
+  (lib (name "CanBUS")(type "KiCad")(uri "${KIPRJMOD}/Libraries/Synbol/CanBUS.kicad_sym")(options "")(descr ""))
+  (lib (name "ESP 32")(type "KiCad")(uri "${KIPRJMOD}/Libraries/Synbol/ESP 32.kicad_sym")(options "")(descr ""))
+  (lib (name "TMP36")(type "KiCad")(uri "${KIPRJMOD}/Libraries/Synbol/TMP36.kicad_sym")(options "")(descr ""))
+)
