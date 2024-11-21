@@ -2491,7 +2491,7 @@
 		(descr "Potentiometer, vertical, Bourns 3339H, http://www.bourns.com/docs/Product-Datasheets/3339.pdf")
 		(tags "Potentiometer vertical Bourns 3339H")
 		(property "Reference" "SecPot1"
-			(at 1.796051 -6.856051 360)
+			(at 1.796051 -6.856051 0)
 			(layer "F.SilkS")
 			(uuid "f55767cc-4e0c-4370-90d8-1c3784433b28")
 			(effects
@@ -2502,7 +2502,7 @@
 			)
 		)
 		(property "Value" "0-10k"
-			(at 1.796051 3.263949 360)
+			(at 1.796051 3.263949 0)
 			(layer "F.Fab")
 			(uuid "6215e5e7-0d63-45d3-b2c5-a260481f4713")
 			(effects
@@ -3566,7 +3566,7 @@
 		)
 	)
 	(gr_text "PRIMARY"
-		(at 160.5 67.5 0)
+		(at 160 98 0)
 		(layer "F.SilkS")
 		(uuid "281fe1bd-1a07-4c74-8d1a-a3b4c233500c")
 		(effects
@@ -3683,7 +3683,7 @@
 		)
 	)
 	(gr_text "SECONDARY"
-		(at 164.5 98 0)
+		(at 164.5 67.5 0)
 		(layer "F.SilkS")
 		(uuid "cb496a4e-e65a-4872-9bce-4618ec86cabe")
 		(effects
