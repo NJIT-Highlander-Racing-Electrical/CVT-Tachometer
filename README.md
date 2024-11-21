@@ -60,12 +60,11 @@ A subsystem that measures the RPM of the primary and secondary on the CVT. This 
 
 ## Electrical Wiring Notes
 
-### Ethernet Cable Wire Colors
-* Orange: IR Emitter +
-* Orange/White: IR Emitter -
-* Blue: IR Receiver +
-* Blue/White: IR Receiver -
-* Green: TMP36 OUT
-* Brown/White: TMP36 3.3V VCC
-* Brown: TMP36 GND
+### Pins to sensor modules
+
+Pin 1: +5V
+Pin 2: GND
+Pin 3: TMP36 Output
+Pin 4: IR Emitter Return Line
+Pin 5: IR Receiver Return Line
 
