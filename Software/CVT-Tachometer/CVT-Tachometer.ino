@@ -12,6 +12,11 @@
 *
 * NOTE: This file does not use the shared BajaCAN.h, as it requires the use of both cores
 *
+* NOTE: Based on the resistor value in the IR photodiode voltage divider, it is possible for the input to the analog pin to exceed 3.3V
+* Ensure this does not happen, because if it does, it can interfere with the temperature sensor analog reading or cause damage to hardware
+* With a properly set fixed resistor, this should not be an issue, but setting the potentiometer too high would allow the voltage at the
+* center tap of the voltage divider to exceed 3.3V.
+*
 */
 
 #include "src/libraries/arduino-CAN/src/CAN.h"
@@ -24,12 +29,12 @@
 
 
 
-#define PRIMARY_IR 34  // Use this definition when using the fixed resistor IR input
-//#define PRIMARY_IR 33  // Use this definition when using the potentiometer IR input
+//#define PRIMARY_IR 34  // Use this definition when using the fixed resistor IR inpu
+#define PRIMARY_IR 33  // Use this definition when using the potentiometer IR input
 #define PRIMARY_TEMP 35  // Primary TMP36 Sensor pin
 
-#define SECONDARY_IR 13  // Use this definition when using the fixed resistor IR input
-//#define SECONDARY_IR 4  // Use this definition when using the potentiometer IR input
+//#define SECONDARY_IR 13  // Use this definition when using the fixed resistor IR input
+#define SECONDARY_IR 4  // Use this definition when using the potentiometer IR input 
 #define SECONDARY_TEMP 27  // Secondary TMP36 Sensor pin
 
 // Definitions for all CAN setup parameters
