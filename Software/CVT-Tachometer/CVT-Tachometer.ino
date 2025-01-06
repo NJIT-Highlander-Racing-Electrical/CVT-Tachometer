@@ -22,6 +22,7 @@
 #include "src/libraries/arduino-CAN/src/CAN.h"
 
 
+
 // Set DEBUG to false for final program; Serial is just used for troubleshooting
 #define DEBUG true
 #define DEBUG_SERIAL \
@@ -45,8 +46,9 @@
 // CVT Tachometer CAN IDs
 const int primaryRPM_ID = 0x01;
 const int secondaryRPM_ID = 0x02;
-const int cvtPrimaryTemperature_ID = 0x03;
-const int cvtSecondaryTemperature_ID = 0x04;
+const int primaryTemperature_ID = 0x03;
+const int secondaryTemperature_ID = 0x04;
+const int statusCVT_ID = 0x5A;
 
 // Task to run on second core (dual-core processing)
 TaskHandle_t Task1;
@@ -88,13 +90,13 @@ unsigned long lastPrimTempReading = 0;  // Variable for last time temperature se
 int primTempReading = 0;                // Analog reading from temp sensor
 float primTempVoltage = 0;              // Calculated voltage based on analog reading
 float primTempC = 0;
-float primTempF = 0;
+float primaryTemperature = 0;
 
 unsigned long lastSecTempReading = 0;  // Variable for last time temperature sensor has been polled
 int secTempReading = 0;                // Analog reading from temp sensor
 float secTempVoltage = 0;              // Calculated voltage based on analog reading
 float secTempC = 0;
-float secTempF = 0;
+float secondaryTemperature = 0;
 
 void setup() {
 
@@ -108,7 +110,7 @@ void setup() {
   }
 
 
-  DEBUG_SERIAL.begin(921600);
+  DEBUG_SERIAL.begin(115200);
 
   pinMode(PRIMARY_IR, INPUT);
   pinMode(PRIMARY_TEMP, INPUT);
@@ -120,7 +122,7 @@ void setup() {
   xTaskCreatePinnedToCore(
     Task1code, /* Task function. */
     "Task1",   /* name of task. */
-    10000,     /* Stack size of task */
+    2000,     /* Stack size of task */
     NULL,      /* parameter of the task */
     1,         /* priority of the task */
     &Task1,    /* Task handle to keep track of created task */

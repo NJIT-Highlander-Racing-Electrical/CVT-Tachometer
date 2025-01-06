@@ -69,7 +69,7 @@ void readSecondaryTemp() {
     secTempVoltage = secTempReading * 3.3;
     secTempVoltage /= 4095.0;
     secTempC = (secTempVoltage - 0.5) * 100;  //converting from 10 mv per degree wit 500 mV offset
-    secTempF = (secTempC * 9.0 / 5.0) + 32.0;
+    secondaryTemperature = (secTempC * 9.0 / 5.0) + 32.0;
     
     lastSecTempReading = millis();
   }

@@ -70,7 +70,7 @@ void readPrimaryTemp() {
     primTempVoltage = primTempReading * 3.3;
     primTempVoltage /= 4095.0;
     primTempC = (primTempVoltage - 0.5) * 100;  //converting from 10 mv per degree wit 500 mV offset
-    primTempF = (primTempC * 9.0 / 5.0) + 32.0;
+    primaryTemperature = (primTempC * 9.0 / 5.0) + 32.0;
 
     lastPrimTempReading = millis();
   }

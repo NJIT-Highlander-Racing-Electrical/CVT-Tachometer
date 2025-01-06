@@ -4,13 +4,13 @@ void printData() {
   int put = primaryUpperThreshold;
   int pv = primaryValue;
   int pr = primaryRPM;
-  int ptf = primTempF;
+  int ptf = primaryTemperature;
 
   int slt = secondaryLowerThreshold;
   int sut = secondaryUpperThreshold;
   int sv = secondaryValue;
   int sr = secondaryRPM;
-  int stf = secTempF;
+  int stf = secondaryTemperature;
 
 
   DEBUG_SERIAL.print("primLowerThreshold:");
@@ -51,4 +51,5 @@ void printData() {
 
   DEBUG_SERIAL.print("secTemp F:");
   DEBUG_SERIAL.println(stf);
+  
 }
