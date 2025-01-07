@@ -11,7 +11,6 @@ void checkForRTR() {
 
     // If this packet was a RTR and we are the proper recipient, return the requested data
     if (CAN.packetRtr() && (packetId == statusCVT_ID)) {
-      Serial.println("Rec rtr");
       CAN.beginPacket(statusCVT_ID);
       CAN.print(statusCVT);
       CAN.endPacket();
