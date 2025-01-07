@@ -35,7 +35,7 @@ A subsystem that measures the RPM of the primary and secondary on the CVT. This 
 
  ## Notes
 
- * Super-Bright IR LEDs support an output current of 100mA with a forward voltage of 1.6V. We are using a 22 ohm resistor for a current of roughly 80 mA
+ * Super-Bright IR LEDs support an output current of 100mA with a forward voltage of 1.6V. This means a voltage drop of 5V-1.6V = 3.4V across the 1W resistor. To achieve a current of roughly 75mA, we are using a 47 ohm resistor
     * 5V -> IR LED -> Resistor -> Ground
  * Using standard infrared photodiodes, we can simply power the IR leds without needing a 38kHz pulse rate
     * 5V -> IR Diode -> Resistor -> Ground (sample signal between diode and resistor voltage divider)
