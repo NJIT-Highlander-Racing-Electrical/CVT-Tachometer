@@ -14,7 +14,12 @@ void readPrimary() {
     currentPrimaryReadTime = millis();
 
     // Find elapsed time between current reading and previous reading, then calculate RPM from that
-    if ((currentPrimaryReadTime - lastPrimaryReadTime) != 0) {
+    if (primaryIgnoreReading) {
+      primaryIgnoreReading = false;
+      // If a recent task may have resulted in a missed reading, skip the calculation.
+      // We still save the lastPrimaryReadTime for the next calculation though
+    }
+    else if ((currentPrimaryReadTime - lastPrimaryReadTime) != 0) {
     primaryRPM = (1.00 / (float(currentPrimaryReadTime - lastPrimaryReadTime) / 1000.0)) * 60.0;
     }
     else {

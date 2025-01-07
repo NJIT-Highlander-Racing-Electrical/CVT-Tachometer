@@ -28,6 +28,9 @@
 #define DEBUG_SERIAL \
   if (DEBUG) Serial
 
+const int debugPrintInterval = 100; // Rate at which we print to Serial monitor. This is to reduce calculation issues
+int lastPrintTime = 0; // The last time that we printed to monitor
+
 
 
 //#define PRIMARY_IR 34  // Use this definition when using the fixed resistor IR inpu
@@ -86,6 +89,12 @@ int secondaryRPM = 0;  // calculated RPM value based on elapsed time between rea
 // Prevents double counting of revolution
 bool primaryGoneLow = true;
 bool secondaryGoneLow = true;
+
+
+// In the case that some event occurs where we could miss a message (sending CAN, printing to serial monitor, etc),
+// We should take the next reading, skip the calculation, and then calculate on the next revolution
+bool primaryIgnoreReading = false; 
+bool secondaryIgnoreReading = false;
 
 const int timeoutThreshold = 1000;  // If there are no readings in timeoutThreshold milliseconds, reset RPM to zero
 
@@ -152,7 +161,11 @@ void loop() {
 
   delay(1);  // Delay for stability
 
-  printData();
+ if ((millis() - lastPrintTime) > debugPrintInterval ) {
+        lastPrintTime = millis();
+        printData();
+        primaryIgnoreReading = true; // Since the printData() function may result in a missed reading, ignore the next calculation
+      }
 }
 
 
@@ -174,6 +187,8 @@ void Task1code(void* pvParameters) {
     if ((millis() - lastCanSendTime) > canSendInterval) {
         lastCanSendTime = millis();
         sendCAN();
+        secondaryIgnoreReading = true; // Since the printData() function may result in a missed reading, ignore the next calculation
+
       }
   }
 }
