@@ -15,7 +15,7 @@ void readSecondary() {
 
     // Find elapsed time between current reading and previous reading, then calculate RPM from that
     if (secondaryIgnoreReading) {
-      (secondaryIgnoreReading = false;
+      secondaryIgnoreReading = false;
       // If a recent task may have resulted in a missed reading, skip the calculation.
       // We still save the lastSecondaryReadTime for the next calculation though
     }
