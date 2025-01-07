@@ -31,17 +31,22 @@
 
 
 //#define PRIMARY_IR 34  // Use this definition when using the fixed resistor IR inpu
-#define PRIMARY_IR 33  // Use this definition when using the potentiometer IR input
+#define PRIMARY_IR 33    // Use this definition when using the potentiometer IR input
 #define PRIMARY_TEMP 35  // Primary TMP36 Sensor pin
 
 //#define SECONDARY_IR 13  // Use this definition when using the fixed resistor IR input
-#define SECONDARY_IR 4  // Use this definition when using the potentiometer IR input 
+#define SECONDARY_IR 4     // Use this definition when using the potentiometer IR input
 #define SECONDARY_TEMP 27  // Secondary TMP36 Sensor pin
 
 // Definitions for all CAN setup parameters
 #define CAN_BAUD_RATE 1000E3
 #define CAN_TX_GPIO 25
 #define CAN_RX_GPIO 26
+
+// Number of milliseconds to wait between transmissions
+int canSendInterval = 100;
+// Definition to log the last time that a CAN message was sent
+int lastCanSendTime = 0;
 
 // CVT Tachometer CAN IDs
 const int primaryRPM_ID = 0x01;
@@ -122,7 +127,7 @@ void setup() {
   xTaskCreatePinnedToCore(
     Task1code, /* Task function. */
     "Task1",   /* name of task. */
-    2000,     /* Stack size of task */
+    2000,      /* Stack size of task */
     NULL,      /* parameter of the task */
     1,         /* priority of the task */
     &Task1,    /* Task handle to keep track of created task */
@@ -144,7 +149,8 @@ void setup() {
 void loop() {
 
   readPrimary();
-  delay(1); // Delay to match secondary poll rate
+
+  delay(1);  // Delay for stability
 
   printData();
 }
@@ -162,7 +168,12 @@ void Task1code(void* pvParameters) {
   for (;;) {
 
     readSecondary();
-    delay(1); // Short delay to allow other tasks to occcur. Without this, watchdog is triggered
-    sendCAN();
+
+    delay(1);  // Delay for stability
+
+    if ((millis() - lastCanSendTime) > canSendInterval) {
+        lastCanSendTime = millis();
+        sendCAN();
+      }
   }
 }
