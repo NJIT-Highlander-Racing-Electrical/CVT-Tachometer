@@ -15,10 +15,5 @@ void sendCAN() {
   CAN.beginPacket(secondaryTemperature_ID);
   CAN.print(secondaryTemperature);
   CAN.endPacket();
-
- CAN.beginPacket(statusCVT_ID);
-  CAN.print(1);
-  CAN.endPacket();
-
   
 }

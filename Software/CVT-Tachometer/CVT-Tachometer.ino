@@ -126,7 +126,7 @@ void setup() {
   }
 
 
-  DEBUG_SERIAL.begin(115200);
+  DEBUG_SERIAL.begin(460800);
 
   pinMode(PRIMARY_IR, INPUT);
   pinMode(PRIMARY_TEMP, INPUT);
