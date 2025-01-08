@@ -1,17 +1,17 @@
 void checkStatus() {
 
-  /*
-    Status flag bits for CVT
+ /*
+  Status flag bits for CVT
 
-    Bit 7 (MSB): Unused
-    Bit 6: Unused
-    Bit 5: Unused
-    Bit 4: Unused
-    Bit 3: Secondary Temp
-    Bit 2: Secondary IR
-    Bit 1: Primary Temp
-    Bit 0 (LSB): Primary IR
-  */
+  Bit 0 (LSB): Primary IR
+  Bit 1: Primary Temp
+  Bit 2: Secondary IR
+  Bit 3: Secondary Temp
+  Bit 4: Unused
+  Bit 5: Unused
+  Bit 6: Unused
+  Bit 7 (MSB) Unused
+*/
 
   // Ternary operator is used for briefness
 
