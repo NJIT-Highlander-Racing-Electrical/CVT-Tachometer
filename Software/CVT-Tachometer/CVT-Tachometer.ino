@@ -138,7 +138,7 @@ void setup() {
   xTaskCreatePinnedToCore(
     Task1code, /* Task function. */
     "Task1",   /* name of task. */
-    2000,      /* Stack size of task */
+    2000,     /* Stack size of task */
     NULL,      /* parameter of the task */
     1,         /* priority of the task */
     &Task1,    /* Task handle to keep track of created task */
@@ -195,6 +195,5 @@ void Task1code(void* pvParameters) {
     checkStatus();
 
     checkForRTR();
-
   }
 }

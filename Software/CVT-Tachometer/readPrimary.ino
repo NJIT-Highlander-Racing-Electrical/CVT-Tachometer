@@ -18,13 +18,10 @@ void readPrimary() {
       primaryIgnoreReading = false;
       // If a recent task may have resulted in a missed reading, skip the calculation.
       // We still save the lastPrimaryReadTime for the next calculation though
-    }
-    else if ((currentPrimaryReadTime - lastPrimaryReadTime) != 0) {
-    primaryRPM = (1.00 / (float(currentPrimaryReadTime - lastPrimaryReadTime) / 1000.0)) * 60.0;
-    }
-    else {
-        DEBUG_SERIAL.println("readPrimary(): AVOIDED DIVIDE BY ZERO");
-
+    } else if ((currentPrimaryReadTime - lastPrimaryReadTime) != 0) {
+      primaryRPM = (1.00 / (float(currentPrimaryReadTime - lastPrimaryReadTime) / 1000.0)) * 60.0;
+    } else {
+      DEBUG_SERIAL.println("readPrimary(): AVOIDED DIVIDE BY ZERO");
     }
 
     lastPrimaryReadTime = currentPrimaryReadTime;
@@ -68,7 +65,7 @@ void updatePrimaryBounds() {
 
 
 void readPrimaryTemp() {
- 
+
   if ((millis() - lastPrimTempReading) > tempUpdateFrequency) {
 
     primTempReading = analogRead(PRIMARY_TEMP);

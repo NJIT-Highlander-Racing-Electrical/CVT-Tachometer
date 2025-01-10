@@ -18,9 +18,7 @@ void readSecondary() {
       secondaryIgnoreReading = false;
       // If a recent task may have resulted in a missed reading, skip the calculation.
       // We still save the lastSecondaryReadTime for the next calculation though
-    }
-    if ((currentSecondaryReadTime - lastSecondaryReadTime) != 0) {
-
+    } else if ((currentSecondaryReadTime - lastSecondaryReadTime) != 0) {
       secondaryRPM = (1.00 / (float(currentSecondaryReadTime - lastSecondaryReadTime) / 1000.0)) * 60.0;
     } else {
       DEBUG_SERIAL.println("readSecondary(): AVOIDED DIVIDE BY ZERO");
@@ -28,7 +26,6 @@ void readSecondary() {
 
     lastSecondaryReadTime = currentSecondaryReadTime;
     secondaryGoneLow = false;
-
   }
 
   // We do not want to double count white stripe on same revolution, so wait for black again
@@ -75,10 +72,7 @@ void readSecondaryTemp() {
     secTempVoltage /= 4095.0;
     secTempC = (secTempVoltage - 0.5) * 100;  //converting from 10 mv per degree wit 500 mV offset
     secondaryTemperature = (secTempC * 9.0 / 5.0) + 32.0;
-    
+
     lastSecTempReading = millis();
   }
-
-
-
 }
