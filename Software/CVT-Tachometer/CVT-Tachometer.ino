@@ -138,7 +138,7 @@ void setup() {
   xTaskCreatePinnedToCore(
     Task1code, /* Task function. */
     "Task1",   /* name of task. */
-    2000,     /* Stack size of task */
+    2000,      /* Stack size of task */
     NULL,      /* parameter of the task */
     1,         /* priority of the task */
     &Task1,    /* Task handle to keep track of created task */
@@ -166,7 +166,8 @@ void loop() {
   if ((millis() - lastPrintTime) > debugPrintInterval) {
     lastPrintTime = millis();
     printData();
-    primaryIgnoreReading = true;  // Since the printData() function may result in a missed reading, ignore the next calculation
+    primaryIgnoreReading = false;  // Since the printData() function may result in a missed reading, ignore the next calculation
+                                  // Note that this may cause issues if we are seeing fewer readings per second than messages sent per second
   }
 }
 
@@ -189,7 +190,8 @@ void Task1code(void* pvParameters) {
     if ((millis() - lastCanSendTime) > canSendInterval) {
       lastCanSendTime = millis();
       sendCAN();
-      secondaryIgnoreReading = true;  // Since the printData() function may result in a missed reading, ignore the next calculation
+      secondaryIgnoreReading = false;  // Since the sendCAN() function may result in a missed reading, ignore the next calculation
+                                      // Note that this may cause issues if we are seeing fewer readings per second than messages sent per second
     }
 
     checkStatus();
