@@ -155,7 +155,7 @@ void loop() {
 
   readPrimary();
 
-  delayMicroseconds(250);  // Delay for stability
+  delay(1);  // Delay for stability
 
   if ((millis() - lastPrintTime) > debugPrintInterval) {
     lastPrintTime = millis();
@@ -177,7 +177,7 @@ void Task1code(void* pvParameters) {
 
     readSecondary();
 
-    delayMicroseconds(250);  // Delay for stability
+    delay(1);  // Delay for stability
 
     if ((millis() - lastCanSendTime) > canSendInterval) {
       lastCanSendTime = millis();
