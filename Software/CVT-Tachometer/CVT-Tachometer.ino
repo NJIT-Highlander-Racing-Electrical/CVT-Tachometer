@@ -108,12 +108,6 @@ float secTempVoltage = 0;              // Calculated voltage based on analog rea
 float secTempC = 0;
 float secondaryTemperature = 0;
 
-
-// debugging variables
-
-volatile unsigned long core2_nonreading_time_start = 0;
-volatile unsigned long core2_nonreading_time_end = 0;
-
 void setup() {
 
   CAN.setPins(CAN_RX_GPIO, CAN_TX_GPIO);
@@ -161,8 +155,7 @@ void loop() {
 
   readPrimary();
 
-
-  delay(1);  // Delay for stability
+  delayMicroseconds(250);  // Delay for stability
 
   if ((millis() - lastPrintTime) > debugPrintInterval) {
     lastPrintTime = millis();
@@ -181,18 +174,10 @@ void Task1code(void* pvParameters) {
   Serial.println(xPortGetCoreID());
 
   for (;;) {
-    core2_nonreading_time_end = micros();
-
-    Serial.print("Time Spent not reading CVT on core2: ");
-    Serial.print(core2_nonreading_time_end - core2_nonreading_time_start);
-    Serial.println(" microseconds");
-
 
     readSecondary();
 
-    core2_nonreading_time_start = micros();
-
-    delay(1);  // Delay for stability
+    delayMicroseconds(250);  // Delay for stability
 
     if ((millis() - lastCanSendTime) > canSendInterval) {
       lastCanSendTime = millis();
