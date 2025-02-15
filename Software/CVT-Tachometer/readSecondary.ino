@@ -14,11 +14,7 @@ void readSecondary() {
     currentSecondaryReadTime = millis();
 
     // Find elapsed time between current reading and previous reading, then calculate RPM from that
-    if (secondaryIgnoreReading) {
-      secondaryIgnoreReading = false;
-      // If a recent task may have resulted in a missed reading, skip the calculation.
-      // We still save the lastSecondaryReadTime for the next calculation though
-    } else if ((currentSecondaryReadTime - lastSecondaryReadTime) != 0) {
+    if ((currentSecondaryReadTime - lastSecondaryReadTime) != 0) {
       secondaryRPM = (1.00 / (float(currentSecondaryReadTime - lastSecondaryReadTime) / 1000.0)) * 60.0;
     } else {
       DEBUG_SERIAL.println("readSecondary(): AVOIDED DIVIDE BY ZERO");

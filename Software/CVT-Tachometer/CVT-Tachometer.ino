@@ -92,12 +92,6 @@ int secondaryRPM = 0;  // calculated RPM value based on elapsed time between rea
 bool primaryGoneLow = true;
 bool secondaryGoneLow = true;
 
-
-// In the case that some event occurs where we could miss a message (sending CAN, printing to serial monitor, etc),
-// We should take the next reading, skip the calculation, and then calculate on the next revolution
-bool primaryIgnoreReading = false;
-bool secondaryIgnoreReading = false;
-
 const int timeoutThreshold = 1000;  // If there are no readings in timeoutThreshold milliseconds, reset RPM to zero
 
 const int tempUpdateFrequency = 1000;  // Get a new temperature reading every 1000 milliseconds
@@ -113,6 +107,12 @@ int secTempReading = 0;                // Analog reading from temp sensor
 float secTempVoltage = 0;              // Calculated voltage based on analog reading
 float secTempC = 0;
 float secondaryTemperature = 0;
+
+
+// debugging variables
+
+volatile unsigned long core2_nonreading_time_start = 0;
+volatile unsigned long core2_nonreading_time_end = 0;
 
 void setup() {
 
@@ -161,13 +161,12 @@ void loop() {
 
   readPrimary();
 
+
   delay(1);  // Delay for stability
 
   if ((millis() - lastPrintTime) > debugPrintInterval) {
     lastPrintTime = millis();
     printData();
-    primaryIgnoreReading = false;  // Since the printData() function may result in a missed reading, ignore the next calculation
-                                  // Note that this may cause issues if we are seeing fewer readings per second than messages sent per second
   }
 }
 
@@ -182,16 +181,22 @@ void Task1code(void* pvParameters) {
   Serial.println(xPortGetCoreID());
 
   for (;;) {
+    core2_nonreading_time_end = micros();
+
+    Serial.print("Time Spent not reading CVT on core2: ");
+    Serial.print(core2_nonreading_time_end - core2_nonreading_time_start);
+    Serial.println(" microseconds");
+
 
     readSecondary();
+
+    core2_nonreading_time_start = micros();
 
     delay(1);  // Delay for stability
 
     if ((millis() - lastCanSendTime) > canSendInterval) {
       lastCanSendTime = millis();
       sendCAN();
-      secondaryIgnoreReading = false;  // Since the sendCAN() function may result in a missed reading, ignore the next calculation
-                                      // Note that this may cause issues if we are seeing fewer readings per second than messages sent per second
     }
 
     checkStatus();
