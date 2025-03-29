@@ -5,7 +5,7 @@ void checkForRTR() {
   int packetSize = CAN.parsePacket();
   int packetId;
 
-  if ((packetSize || CAN.packetId() != -1) && (packetSize != 0)) {
+    if ((packetSize > 0) || (CAN.packetRtr() && CAN.packetId() != -1)) {
     // received a packet
     packetId = CAN.packetId();  // Get the packet ID
 
