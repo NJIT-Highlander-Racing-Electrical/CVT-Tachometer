@@ -66,6 +66,7 @@ void readSecondaryTemp() {
     secTempReading = analogRead(SECONDARY_TEMP);
     secTempVoltage = secTempReading * 3.3;
     secTempVoltage /= 4095.0;
+    secTempVoltage += 0.015;  // small correction of 15mV for calibrating to actual temp
     secTempC = (secTempVoltage - 0.5) * 100;  //converting from 10 mv per degree wit 500 mV offset
     secondaryTemperature = (secTempC * 9.0 / 5.0) + 32.0;
 
