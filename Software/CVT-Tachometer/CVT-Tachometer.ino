@@ -42,7 +42,7 @@ int lastPrintTime = 0;               // The last time that we printed to monitor
 #define SECONDARY_TEMP 27  // Secondary TMP36 Sensor pin
 
 // Definitions for all CAN setup parameters
-#define CAN_BAUD_RATE 1000E3
+#define CAN_BAUD_RATE 2000E3
 #define CAN_TX_GPIO 25
 #define CAN_RX_GPIO 26
 
