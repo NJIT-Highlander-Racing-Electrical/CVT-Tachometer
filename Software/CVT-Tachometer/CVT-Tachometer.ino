@@ -47,7 +47,7 @@ int lastPrintTime = 0;               // The last time that we printed to monitor
 #define CAN_RX_GPIO 26
 
 // Number of milliseconds to wait between transmissions
-int canSendInterval = 100;
+int canSendInterval = 50;
 // Definition to log the last time that a CAN message was sent
 int lastCanSendTime = 0;
 
