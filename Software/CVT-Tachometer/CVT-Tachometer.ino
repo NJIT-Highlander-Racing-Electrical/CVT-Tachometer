@@ -94,7 +94,7 @@ bool secondaryGoneLow = true;
 
 const int timeoutThreshold = 1000;  // If there are no readings in timeoutThreshold milliseconds, reset RPM to zero
 
-const int tempUpdateFrequency = 1000;  // Get a new temperature reading every 1000 milliseconds
+const int tempUpdateFrequency = 2500;  // Get a new temperature reading every 2500 milliseconds
 
 unsigned long lastPrimTempReading = 0;  // Variable for last time temperature sensor has been polled
 int primTempReading = 0;                // Analog reading from temp sensor

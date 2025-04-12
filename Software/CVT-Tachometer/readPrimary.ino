@@ -64,10 +64,20 @@ void readPrimaryTemp() {
 
   if ((millis() - lastPrimTempReading) > tempUpdateFrequency) {
 
-    primTempReading = analogRead(PRIMARY_TEMP);
+    long total = 0;
+
+    // Average 10 readings
+    for (int i = 0; i < 10; i++) {
+      total += analogRead(PRIMARY_TEMP);  // Read from the primary temp pin
+    }
+
+    // Calculate the average reading
+    primTempReading = total / 10;
+
+
     primTempVoltage = primTempReading * 3.3;
     primTempVoltage /= 4095.0;
-    primTempVoltage += 0.05;  // small correction of 50mV for calibrating to actual temp
+    primTempVoltage += 0.07;                    // small correction for calibrating to actual temp
     primTempC = (primTempVoltage - 0.5) * 100;  //converting from 10 mv per degree wit 500 mV offset
     primaryTemperature = (primTempC * 9.0 / 5.0) + 32.0;
 

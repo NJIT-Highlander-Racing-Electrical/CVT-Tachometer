@@ -29,7 +29,7 @@ void printData() {
   DEBUG_SERIAL.print(pr);
   DEBUG_SERIAL.print(", ");
 
-  DEBUG_SERIAL.print("primTemp F:");
+  DEBUG_SERIAL.print("primTempF:");
   DEBUG_SERIAL.print(ptf);
   DEBUG_SERIAL.print(", ");
 
@@ -49,7 +49,7 @@ void printData() {
   DEBUG_SERIAL.print(sr);
   DEBUG_SERIAL.print(", ");
 
-  DEBUG_SERIAL.print("secTemp F:");
+  DEBUG_SERIAL.print("secTempF:");
   DEBUG_SERIAL.println(stf);
   
 }
