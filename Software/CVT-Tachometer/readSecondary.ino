@@ -1,33 +1,62 @@
 void readSecondary() {
 
-  // Get analog reading
+    // Take an analog reading
   secondaryValue = analogRead(SECONDARY_IR);
 
-  // If we haven't seen a reading in timeoutThreshold milliseconds, reset to zero
-  if ((millis() - lastSecondaryReadTime) > timeoutThreshold) {
-    secondaryRPM = 0;
-  }
-
-  // If the sensor detects the white stripe and we were not already on the stripe
-  if ((secondaryValue > secondaryUpperThreshold) && secondaryGoneLow) {
+  // If the sensor detects the white stripe
+  if (secondaryValue > secondaryUpperThreshold) {
     // Mark the current time
-    currentSecondaryReadTime = millis();
+    firstSecondaryReadTime = micros();
 
-    // Find elapsed time between current reading and previous reading, then calculate RPM from that
-    if ((currentSecondaryReadTime - lastSecondaryReadTime) != 0) {
-      secondaryRPM = (1.00 / (float(currentSecondaryReadTime - lastSecondaryReadTime) / 1000.0)) * 60.0;
+    // Wait for the reading to go low
+    while (analogRead(SECONDARY_IR) > secondaryLowerThreshold) {
+      // We aren't interested in doing anything here, but to prevent us from getting stuck, break if it never goes low
+      if ((micros() - firstSecondaryReadTime) > timeoutThreshold) {
+        secondaryRPM = 0;
+        return;
+      }
+    }
+
+    unsigned long goneLowTime = micros();
+
+    // Now that reading has gone low, wait for it to go high again
+    while (analogRead(SECONDARY_IR) < secondaryUpperThreshold) {
+      // We aren't interested in doing anything here, but to prevent us from getting stuck, break if it never goes high again
+      if ((micros() - goneLowTime) > timeoutThreshold) {
+        secondaryRPM = 0;
+        return;
+      }
+    }
+
+    // If we're here, then the second reading was completed
+    secondSecondaryReadTime = micros();
+    unsigned long goneHighTime = micros();
+
+    // Ensure that secondSecondaryReadTime is greater than firstSecondaryReadTime
+    // Since we are using an unsigned long, the micros value will roll over approximately every hour
+
+    if (secondSecondaryReadTime < firstSecondaryReadTime) {
+      DEBUG_SERIAL.println("micros() rollover, ignoring reading");
+      return;
+    }
+
+    // Find elapsed time between first and second reading, then calculate RPM from that
+    if ((secondSecondaryReadTime - firstSecondaryReadTime) != 0) {
+      secondaryRPM = (1.00 / (float(secondSecondaryReadTime - firstSecondaryReadTime) / 1000000.0)) / numSecondaryTargets * 60.0;
     } else {
       DEBUG_SERIAL.println("readSecondary(): AVOIDED DIVIDE BY ZERO");
     }
-
-    lastSecondaryReadTime = currentSecondaryReadTime;
-    secondaryGoneLow = false;
   }
 
-  // We do not want to double count white stripe on same revolution, so wait for black again
-  if (secondaryValue < secondaryLowerThreshold) {
-    secondaryGoneLow = true;
-  }
+    // Before we exit, wait for a low again
+    // This way, when we get back to the start of the read secondary function, we do not double count the current HIGH
+    // This should execute fairly quickly in regular use, but if it doesn't something is wrong and we should break
+    while (analogRead(SECONDARY_IR) > secondaryLowerThreshold) {
+      if ((micros() - goneHighTime) > timeoutThreshold) {
+        secondaryRPM = 0;
+        return;
+      }
+    }
 
   // Update threshold based on min/max readings
   updateSecondaryBounds();

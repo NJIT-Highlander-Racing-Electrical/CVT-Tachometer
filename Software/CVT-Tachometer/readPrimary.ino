@@ -1,33 +1,62 @@
 void readPrimary() {
 
-  // Get analog reading
+  // Take an analog reading
   primaryValue = analogRead(PRIMARY_IR);
 
-  // If we haven't seen a reading in timeoutThreshold milliseconds, reset to zero
-  if ((millis() - lastPrimaryReadTime) > timeoutThreshold) {
-    primaryRPM = 0;
-  }
-
-  // If the sensor detects the white stripe and we were not already on the stripe
-  if ((primaryValue > primaryUpperThreshold) && primaryGoneLow) {
+  // If the sensor detects the white stripe
+  if (primaryValue > primaryUpperThreshold) {
     // Mark the current time
-    currentPrimaryReadTime = millis();
+    firstPrimaryReadTime = micros();
 
-    // Find elapsed time between current reading and previous reading, then calculate RPM from that
-    if ((currentPrimaryReadTime - lastPrimaryReadTime) != 0) {
-      primaryRPM = (1.00 / (float(currentPrimaryReadTime - lastPrimaryReadTime) / 1000.0)) * 60.0;
+    // Wait for the reading to go low
+    while (analogRead(PRIMARY_IR) > primaryLowerThreshold) {
+      // We aren't interested in doing anything here, but to prevent us from getting stuck, break if it never goes low
+      if ((micros() - firstPrimaryReadTime) > timeoutThreshold) {
+        primaryRPM = 0;
+        return;
+      }
+    }
+
+    unsigned long goneLowTime = micros();
+
+    // Now that reading has gone low, wait for it to go high again
+    while (analogRead(PRIMARY_IR) < primaryUpperThreshold) {
+      // We aren't interested in doing anything here, but to prevent us from getting stuck, break if it never goes high again
+      if ((micros() - goneLowTime) > timeoutThreshold) {
+        primaryRPM = 0;
+        return;
+      }
+    }
+
+    // If we're here, then the second reading was completed
+    secondPrimaryReadTime = micros();
+    unsigned long goneHighTime = micros();
+
+    // Ensure that secondPrimaryReadTime is greater than firstPrimaryReadTime
+    // Since we are using an unsigned long, the micros value will roll over approximately every hour
+
+    if (secondPrimaryReadTime < firstPrimaryReadTime) {
+      DEBUG_SERIAL.println("micros() rollover, ignoring reading");
+      return;
+    }
+
+    // Find elapsed time between first and second reading, then calculate RPM from that
+    if ((secondPrimaryReadTime - firstPrimaryReadTime) != 0) {
+      primaryRPM = (1.00 / (float(secondPrimaryReadTime - firstPrimaryReadTime) / 1000000.0)) / numPrimaryTargets * 60.0;
     } else {
       DEBUG_SERIAL.println("readPrimary(): AVOIDED DIVIDE BY ZERO");
     }
-
-    lastPrimaryReadTime = currentPrimaryReadTime;
-    primaryGoneLow = false;
   }
 
-  // We do not want to double count white stripe on same revolution, so wait for black again
-  if (primaryValue < primaryLowerThreshold) {
-    primaryGoneLow = true;
-  }
+    // Before we exit, wait for a low again
+    // This way, when we get back to the start of the read primary function, we do not double count the current HIGH
+    // This should execute fairly quickly in regular use, but if it doesn't something is wrong and we should break
+    while (analogRead(PRIMARY_IR) > primaryLowerThreshold) {
+      if ((micros() - goneHighTime) > timeoutThreshold) {
+        primaryRPM = 0;
+        return;
+      }
+    }
 
   // Update threshold based on min/max readings
   updatePrimaryBounds();
