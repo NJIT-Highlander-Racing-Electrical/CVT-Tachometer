@@ -78,13 +78,13 @@ int secondaryLowerThreshold = 0;
 int secondaryUpperThreshold = 0;
 
 int primaryValue = 0;  // value read from IR sensor
-unsigned long currentPrimaryReadTime = 0;
-unsigned long lastPrimaryReadTime = 0;
+unsigned long firstPrimaryReadtTime = 0;
+unsigned long secondaryPrimaryReadTime = 0;
 int primaryRPM = 0;  // calculated RPM value based on elapsed time between readings
 
 int secondaryValue = 0;  // value read from IR sensor
-unsigned long currentSecondaryReadTime = 0;
-unsigned long lastSecondaryReadTime = 0;
+unsigned long firstSecondaryReadTime = 0;
+unsigned long secondSecondaryReadTime = 0;
 int secondaryRPM = 0;  // calculated RPM value based on elapsed time between readings
 
 // Makes sure that the input goes LOW before counting another revolution
@@ -92,7 +92,10 @@ int secondaryRPM = 0;  // calculated RPM value based on elapsed time between rea
 bool primaryGoneLow = true;
 bool secondaryGoneLow = true;
 
-const int timeoutThreshold = 1000;  // If there are no readings in timeoutThreshold milliseconds, reset RPM to zero
+const int numPrimaryTargets = 8;
+const int numSecondaryTargets = 4;
+
+const int timeoutThreshold = 500000;  // If there are no readings in timeoutThreshold microseconds, reset RPM to zero
 
 const int tempUpdateFrequency = 2500;  // Get a new temperature reading every 2500 milliseconds
 
