@@ -28,17 +28,17 @@
 #define DEBUG_SERIAL \
   if (DEBUG) Serial
 
-const int debugPrintInterval = 100;  // Rate at which we print to Serial monitor. This is to reduce calculation issues
+const int debugPrintInterval = 50;  // Rate at which we print to Serial monitor. This is to reduce calculation issues
 int lastPrintTime = 0;               // The last time that we printed to monitor
 
 
 
-//#define PRIMARY_IR 34  // Use this definition when using the fixed resistor IR inpu
-#define PRIMARY_IR 33    // Use this definition when using the potentiometer IR input
+#define PRIMARY_IR 34  // Use this definition when using the fixed resistor IR inpu
+//#define PRIMARY_IR 33    // Use this definition when using the potentiometer IR input
 #define PRIMARY_TEMP 35  // Primary TMP36 Sensor pin
 
-//#define SECONDARY_IR 13  // Use this definition when using the fixed resistor IR input
-#define SECONDARY_IR 4     // Use this definition when using the potentiometer IR input
+#define SECONDARY_IR 13  // Use this definition when using the fixed resistor IR input
+//#define SECONDARY_IR 4     // Use this definition when using the potentiometer IR input
 #define SECONDARY_TEMP 27  // Secondary TMP36 Sensor pin
 
 // Definitions for all CAN setup parameters
@@ -155,7 +155,7 @@ void loop() {
 
   readPrimary();
 
-  delay(1);  // Delay for stability
+  //delay(1);  // Delay for stability
 
   if ((millis() - lastPrintTime) > debugPrintInterval) {
     lastPrintTime = millis();
@@ -177,7 +177,7 @@ void Task1code(void* pvParameters) {
 
     readSecondary();
 
-    delay(1);  // Delay for stability
+    //delay(1);  // Delay for stability
 
     if ((millis() - lastCanSendTime) > canSendInterval) {
       lastCanSendTime = millis();
