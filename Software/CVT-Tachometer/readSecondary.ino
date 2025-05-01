@@ -44,8 +44,8 @@ void updateSecondaryBounds() {
     // Calculate midpoint
     int minMaxDifference = secondaryMaxReading - secondaryMinReading;
     // Set new thresholds
-    secondaryLowerThreshold = secondaryMinReading + (minMaxDifference / 3);
-    secondaryUpperThreshold = secondaryMaxReading - (minMaxDifference / 3);
+    secondaryLowerThreshold = secondaryMinReading + (minMaxDifference / 4);
+    secondaryUpperThreshold = secondaryMaxReading - (minMaxDifference / 4);
   }
 
   // Update lower bound and threshold
@@ -54,8 +54,8 @@ void updateSecondaryBounds() {
     //Calculate midpoint
     int minMaxDifference = secondaryMaxReading - secondaryMinReading;
     // Set new thresholds
-    secondaryLowerThreshold = secondaryMinReading + (minMaxDifference / 3);
-    secondaryUpperThreshold = secondaryMaxReading - (minMaxDifference / 3);
+    secondaryLowerThreshold = secondaryMinReading + (minMaxDifference / 4);
+    secondaryUpperThreshold = secondaryMaxReading - (minMaxDifference / 4);
   }
 }
 

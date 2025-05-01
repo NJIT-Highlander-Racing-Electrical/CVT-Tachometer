@@ -54,8 +54,8 @@ void updatePrimaryBounds() {
     //Calculate midpoint
     int minMaxDifference = primaryMaxReading - primaryMinReading;
     // Set new thresholds
-    primaryLowerThreshold = primaryMinReading + (minMaxDifference / 3);
-    primaryUpperThreshold = primaryMaxReading - (minMaxDifference / 3);
+    primaryLowerThreshold = primaryMinReading + (minMaxDifference / 4);
+    primaryUpperThreshold = primaryMaxReading - (minMaxDifference / 4);
   }
 }
 
