@@ -182,6 +182,7 @@ void Task1code(void* pvParameters) {
     if ((millis() - lastCanSendTime) > canSendInterval) {
       lastCanSendTime = millis();
       sendCAN();
+      delay(1); // Delay 1ms to allow watchdog to reset
     }
 
     checkStatus();
