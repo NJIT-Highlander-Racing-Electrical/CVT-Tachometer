@@ -28,10 +28,6 @@
 #define DEBUG_SERIAL \
   if (DEBUG) Serial
 
-const int debugPrintInterval = 50;  // Rate at which we print to Serial monitor. This is to reduce calculation issues
-int lastPrintTime = 0;               // The last time that we printed to monitor
-
-
 
 #define PRIMARY_IR 34  // Use this definition when using the fixed resistor IR inpu
 //#define PRIMARY_IR 33    // Use this definition when using the potentiometer IR input
@@ -45,6 +41,21 @@ int lastPrintTime = 0;               // The last time that we printed to monitor
 #define CAN_BAUD_RATE 1000E3
 #define CAN_TX_GPIO 25
 #define CAN_RX_GPIO 26
+
+
+// USER-DEFINED PARAMETERS
+
+const int debugPrintInterval = 50;  // Rate at which we print to Serial monitor. This is to reduce calculation issues
+const int timeoutThreshold = 1000;  // If there are no readings in timeoutThreshold milliseconds, reset RPM to zero
+const int tempUpdateFrequency = 2500;  // Get a new temperature reading every 2500 milliseconds
+const int numPrimaryTargets = 2; // Number of independent sensing targets on CVT primary
+const int numSecondaryTargets = 1; // Number of independent sensing targets on CVT secondary
+
+
+// END
+
+
+int lastPrintTime = 0;               // The last time that we printed to monitor
 
 // Number of milliseconds to wait between transmissions
 int canSendInterval = 50;
@@ -91,10 +102,6 @@ int secondaryRPM = 0;  // calculated RPM value based on elapsed time between rea
 // Prevents double counting of revolution
 bool primaryGoneLow = true;
 bool secondaryGoneLow = true;
-
-const int timeoutThreshold = 1000;  // If there are no readings in timeoutThreshold milliseconds, reset RPM to zero
-
-const int tempUpdateFrequency = 2500;  // Get a new temperature reading every 2500 milliseconds
 
 unsigned long lastPrimTempReading = 0;  // Variable for last time temperature sensor has been polled
 int primTempReading = 0;                // Analog reading from temp sensor

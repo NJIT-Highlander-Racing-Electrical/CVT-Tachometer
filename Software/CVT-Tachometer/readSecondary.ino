@@ -15,7 +15,7 @@ void readSecondary() {
 
     // Find elapsed time between current reading and previous reading, then calculate RPM from that
     if ((currentSecondaryReadTime - lastSecondaryReadTime) != 0) {
-      secondaryRPM = (1.00 / (float(currentSecondaryReadTime - lastSecondaryReadTime) / 1000.0)) * 60.0;
+      secondaryRPM = (1.00 / (float(currentSecondaryReadTime - lastSecondaryReadTime) / 1000.0)) * 60.0 / numSecondaryTargets;
     } else {
       DEBUG_SERIAL.println("readSecondary(): AVOIDED DIVIDE BY ZERO");
     }
