@@ -24,7 +24,7 @@
 
 
 // Set DEBUG to false for final program; Serial is just used for troubleshooting
-#define DEBUG true
+#define DEBUG false
 #define DEBUG_SERIAL \
   if (DEBUG) Serial
 
