@@ -53,4 +53,8 @@ void printData() {
   DEBUG_SERIAL.print("sTemp:");
   DEBUG_SERIAL.println(stf);
   */
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> 3e557d17067eebd249ee6d81547dedd6824b76d6
