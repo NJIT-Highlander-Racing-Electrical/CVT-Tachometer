@@ -15,7 +15,7 @@ void readSecondary() {
 
     // Find elapsed time between current reading and previous reading, then calculate RPM from that
      if ((secondaryUpperThreshold - secondaryLowerThreshold) < 400) {
-      DEBUG_SERIAL.println("Not yet calibrated, ignoring reading");
+      DEBUG_SERIAL.println("Not yet calibrated, ignoring secondary reading");
       // If we do not see a significant difference in the two thresholds, we have not completed a full revolution.
       // Thus, we should ignore the calculation so we do not display/save erroneous
       secondaryRPM = 0;

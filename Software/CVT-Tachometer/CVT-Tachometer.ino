@@ -45,7 +45,7 @@
 
 // USER-DEFINED PARAMETERS
 
-const int debugPrintInterval = 50;  // Rate at which we print to Serial monitor. This is to reduce calculation issues
+const int debugPrintInterval = 20;  // Rate at which we print to Serial monitor. This is to reduce calculation issues
 const int timeoutThreshold = 1000;  // If there are no readings in timeoutThreshold milliseconds, reset RPM to zero
 const int tempUpdateFrequency = 2500;  // Get a new temperature reading every 2500 milliseconds
 const int numPrimaryTargets = 2; // Number of independent sensing targets on CVT primary
@@ -162,8 +162,6 @@ void loop() {
 
   readPrimary();
 
-  //delay(1);  // Delay for stability
-
   if ((millis() - lastPrintTime) > debugPrintInterval) {
     lastPrintTime = millis();
     printData();
@@ -183,8 +181,6 @@ void Task1code(void* pvParameters) {
   for (;;) {
 
     readSecondary();
-
-    //delay(1);  // Delay for stability
 
     if ((millis() - lastCanSendTime) > canSendInterval) {
       lastCanSendTime = millis();
