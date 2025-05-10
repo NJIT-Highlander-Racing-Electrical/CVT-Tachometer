@@ -14,7 +14,13 @@ void readSecondary() {
     currentSecondaryReadTime = millis();
 
     // Find elapsed time between current reading and previous reading, then calculate RPM from that
-    if ((currentSecondaryReadTime - lastSecondaryReadTime) != 0) {
+     if ((secondaryUpperThreshold - secondaryLowerThreshold) < 400) {
+      DEBUG_SERIAL.println("Not yet calibrated, ignoring reading");
+      // If we do not see a significant difference in the two thresholds, we have not completed a full revolution.
+      // Thus, we should ignore the calculation so we do not display/save erroneous
+      secondaryRPM = 0;
+    }
+    else if ((currentSecondaryReadTime - lastSecondaryReadTime) != 0) {
       secondaryRPM = (1.00 / (float(currentSecondaryReadTime - lastSecondaryReadTime) / 1000.0)) * 60.0 / numSecondaryTargets;
     } else {
       DEBUG_SERIAL.println("readSecondary(): AVOIDED DIVIDE BY ZERO");
@@ -75,7 +81,7 @@ void readSecondaryTemp() {
 
     secTempVoltage = secTempReading * 3.3;
     secTempVoltage /= 4095.0;
-    secTempVoltage += 0.015;                  // small correction for calibrating to actual temp
+    secTempVoltage += 0.03;                  // small correction for calibrating to actual temp
     secTempC = (secTempVoltage - 0.5) * 100;  //converting from 10 mv per degree wit 500 mV offset
     secondaryTemperature = (secTempC * 9.0 / 5.0) + 32.0;
 

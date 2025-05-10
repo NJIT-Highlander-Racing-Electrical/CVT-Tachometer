@@ -14,7 +14,13 @@ void readPrimary() {
     currentPrimaryReadTime = millis();
 
     // Find elapsed time between current reading and previous reading, then calculate RPM from that
-    if ((currentPrimaryReadTime - lastPrimaryReadTime) != 0) {
+    if ((primaryUpperThreshold - primaryLowerThreshold) < 400) {
+      DEBUG_SERIAL.println("Not yet calibrated, ignoring reading");
+      // If we do not see a significant difference in the two thresholds, we have not completed a full revolution.
+      // Thus, we should ignore the calculation so we do not display/save erroneous
+      primaryRPM = 0;
+    }
+    else if ((currentPrimaryReadTime - lastPrimaryReadTime) != 0) {
       primaryRPM = (1.00 / (float(currentPrimaryReadTime - lastPrimaryReadTime) / 1000.0)) * 60.0 / numPrimaryTargets;
     } else {
       DEBUG_SERIAL.println("readPrimary(): AVOIDED DIVIDE BY ZERO");
@@ -77,7 +83,7 @@ void readPrimaryTemp() {
 
     primTempVoltage = primTempReading * 3.3;
     primTempVoltage /= 4095.0;
-    primTempVoltage += 0.07;                    // small correction for calibrating to actual temp
+    primTempVoltage += 0.10;                    // small correction for calibrating to actual temp
     primTempC = (primTempVoltage - 0.5) * 100;  //converting from 10 mv per degree wit 500 mV offset
     primaryTemperature = (primTempC * 9.0 / 5.0) + 32.0;
 

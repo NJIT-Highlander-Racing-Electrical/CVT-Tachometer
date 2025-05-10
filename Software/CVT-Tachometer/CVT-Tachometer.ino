@@ -192,8 +192,8 @@ void Task1code(void* pvParameters) {
       delay(1); // Delay 1ms to allow watchdog to reset
     }
 
-    checkStatus();
+    //checkStatus();
 
-    checkForRTR();
+    //checkForRTR();
   }
 }
