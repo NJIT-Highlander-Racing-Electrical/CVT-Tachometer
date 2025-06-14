@@ -83,9 +83,9 @@ void readPrimaryTemp() {
 
     primTempVoltage = primTempReading * 3.3;
     primTempVoltage /= 4095.0;
-    primTempVoltage += 0.10;                    // small correction for calibrating to actual temp
     primTempC = (primTempVoltage - 0.5) * 100;  //converting from 10 mv per degree wit 500 mV offset
     primaryTemperature = (primTempC * 9.0 / 5.0) + 32.0;
+    primaryTemperature += 17; // correct temperature because it is offset roughly this amount from physical testing
 
     lastPrimTempReading = millis();
   }
