@@ -50,7 +50,7 @@ const int timeoutThreshold = 1000;  // If there are no readings in timeoutThresh
 const int tempUpdateFrequency = 2500;  // Get a new temperature reading every 2500 milliseconds
 const int numPrimaryTargets = 2; // Number of independent sensing targets on CVT primary
 const int numSecondaryTargets = 1; // Number of independent sensing targets on CVT secondary
-
+const int numIRSamples = 5; // Number of samples that we take from each ADC pin for determining the analog IR value
 
 // END
 
@@ -96,6 +96,7 @@ int primaryRPM = 0;  // calculated RPM value based on elapsed time between readi
 int secondaryValue = 0;  // value read from IR sensor
 unsigned long currentSecondaryReadTime = 0;
 unsigned long lastSecondaryReadTime = 0;
+bool ignoreNextSecondaryReading = false; // In case we print to CAN/wait for watchdog and may have missed a reading
 int secondaryRPM = 0;  // calculated RPM value based on elapsed time between readings
 
 // Makes sure that the input goes LOW before counting another revolution
