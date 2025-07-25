@@ -45,17 +45,17 @@
 
 // USER-DEFINED PARAMETERS
 
-const int debugPrintInterval = 20;  // Rate at which we print to Serial monitor. This is to reduce calculation issues
-const int timeoutThreshold = 1000;  // If there are no readings in timeoutThreshold milliseconds, reset RPM to zero
+const int debugPrintInterval = 0;      // Rate at which we print to Serial monitor. This is to reduce calculation issues
+const int timeoutThreshold = 1000;     // If there are no readings in timeoutThreshold milliseconds, reset RPM to zero
 const int tempUpdateFrequency = 2500;  // Get a new temperature reading every 2500 milliseconds
-const int numPrimaryTargets = 2; // Number of independent sensing targets on CVT primary
-const int numSecondaryTargets = 1; // Number of independent sensing targets on CVT secondary
-const int numIRSamples = 5; // Number of samples that we take from each ADC pin for determining the analog IR value
+const int numPrimaryTargets = 2;       // Number of independent sensing targets on CVT primary
+const int numSecondaryTargets = 2;     // Number of independent sensing targets on CVT secondary
+const int numIRSamples = 35;           // Number of samples that we take from each ADC pin for determining the analog IR value
 
 // END
 
 
-int lastPrintTime = 0;               // The last time that we printed to monitor
+int lastPrintTime = 0;  // The last time that we printed to monitor
 
 // Number of milliseconds to wait between transmissions
 int canSendInterval = 50;
@@ -96,8 +96,8 @@ int primaryRPM = 0;  // calculated RPM value based on elapsed time between readi
 int secondaryValue = 0;  // value read from IR sensor
 unsigned long currentSecondaryReadTime = 0;
 unsigned long lastSecondaryReadTime = 0;
-bool ignoreNextSecondaryReading = false; // In case we print to CAN/wait for watchdog and may have missed a reading
-int secondaryRPM = 0;  // calculated RPM value based on elapsed time between readings
+bool ignoreNextSecondaryReading = false;  // In case we print to CAN/wait for watchdog and may have missed a reading
+int secondaryRPM = 0;                     // calculated RPM value based on elapsed time between readings
 
 // Makes sure that the input goes LOW before counting another revolution
 // Prevents double counting of revolution
@@ -128,7 +128,7 @@ void setup() {
   }
 
 
-  DEBUG_SERIAL.begin(460800);
+  DEBUG_SERIAL.begin(115200);
 
   pinMode(PRIMARY_IR, INPUT);
   pinMode(PRIMARY_TEMP, INPUT);
@@ -181,12 +181,14 @@ void Task1code(void* pvParameters) {
 
   for (;;) {
 
+
     readSecondary();
+
 
     if ((millis() - lastCanSendTime) > canSendInterval) {
       lastCanSendTime = millis();
       sendCAN();
-      delay(1); // Delay 1ms to allow watchdog to reset
+      delay(1);  // Delay 1ms to allow watchdog to reset
     }
 
     //checkStatus();

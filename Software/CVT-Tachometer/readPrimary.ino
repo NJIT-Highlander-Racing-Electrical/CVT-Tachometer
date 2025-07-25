@@ -4,6 +4,7 @@ void readPrimary() {
   long total = 0;
   for (int i = 0; i < numIRSamples; i++) {
     total += analogRead(PRIMARY_IR);
+      delayMicroseconds(5);  // let the node recharge
   }
   primaryValue = total / numIRSamples;
 
@@ -48,25 +49,28 @@ void readPrimary() {
 
 
 void updatePrimaryBounds() {
-  // Update upper bound and threshold
+   const float alpha = 0.2;   // How fast to move toward a *new* extreme
+  const float decay = 0.01;  // How fast to decay toward the current value when no new extreme
+
+  // Update max: move toward a new high OR decay down slowly
   if (primaryValue > primaryMaxReading) {
-    primaryMaxReading = primaryValue;
-    // Calculate midpoint
-    int minMaxDifference = primaryMaxReading - primaryMinReading;
-    // Set new thresholds
-    primaryLowerThreshold = primaryMinReading + (minMaxDifference / 4);
-    primaryUpperThreshold = primaryMaxReading - (minMaxDifference / 4);
+    primaryMaxReading = (1.0 - alpha) * primaryMaxReading + alpha * primaryValue;
+  } else {
+    primaryMaxReading = (1.0 - decay) * primaryMaxReading + decay * primaryValue;
   }
 
-  // Update lower bound and threshold
+  // Update min: move toward a new low OR decay up slowly
   if (primaryValue < primaryMinReading) {
-    primaryMinReading = primaryValue;
-    //Calculate midpoint
-    int minMaxDifference = primaryMaxReading - primaryMinReading;
-    // Set new thresholds
-    primaryLowerThreshold = primaryMinReading + (minMaxDifference / 4);
-    primaryUpperThreshold = primaryMaxReading - (minMaxDifference / 4);
+    primaryMinReading = (1.0 - alpha) * primaryMinReading + alpha * primaryValue;
+  } else {
+    primaryMinReading = (1.0 - decay) * primaryMinReading + decay * primaryValue;
   }
+
+  // Recalculate thresholds
+  int minMaxDifference = primaryMaxReading - primaryMinReading;
+  primaryLowerThreshold = primaryMinReading + (minMaxDifference / 4);
+  primaryUpperThreshold = primaryMaxReading - (minMaxDifference / 4);
+
 }
 
 
