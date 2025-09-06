@@ -13,32 +13,32 @@ void printData() {
   int stf = secondaryTemperature;
 
 
-  //DEBUG_SERIAL.print("plt:");
+  DEBUG_SERIAL.print("plt:");
   DEBUG_SERIAL.print(plt);
-  DEBUG_SERIAL.print("\t");
+  DEBUG_SERIAL.print(",");
 
-  //DEBUG_SERIAL.print("put:");
+  DEBUG_SERIAL.print("put:");
   DEBUG_SERIAL.print(put);
-  DEBUG_SERIAL.print("\t");
+  DEBUG_SERIAL.print(",");
 
-  //DEBUG_SERIAL.print("pVal:");
+  DEBUG_SERIAL.print("pVal:");
   DEBUG_SERIAL.println(pv);
   //DEBUG_SERIAL.print(", ");
 
-  /*
+
   DEBUG_SERIAL.print("pRpm:");
   DEBUG_SERIAL.print(pr);
   DEBUG_SERIAL.print(", ");
-  */
-  
-  /*
+
+
+
   DEBUG_SERIAL.print("pTemp:");
   DEBUG_SERIAL.print(ptf);
   DEBUG_SERIAL.print(", ");
-  */
 
 
-  /*
+
+
   DEBUG_SERIAL.print("slt:");
   DEBUG_SERIAL.print(slt);
   DEBUG_SERIAL.print(", ");
@@ -52,12 +52,11 @@ void printData() {
   DEBUG_SERIAL.print(", ");
 
   DEBUG_SERIAL.print("sRpm:");
-  DEBUG_SERIAL.println(sr);
-  */
+  DEBUG_SERIAL.print(sr);
 
 
-  /*
+
+
   DEBUG_SERIAL.print("sTemp:");
   DEBUG_SERIAL.println(stf);
-  */
 }
