@@ -23,7 +23,7 @@ void printData() {
 
   DEBUG_SERIAL.print("pVal:");
   DEBUG_SERIAL.println(pv);
-  //DEBUG_SERIAL.print(", ");
+  DEBUG_SERIAL.print(", ");
 
 
   DEBUG_SERIAL.print("pRpm:");
