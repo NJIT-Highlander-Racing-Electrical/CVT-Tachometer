@@ -58,7 +58,7 @@ const int numIRSamples = 35;           // Number of samples that we take from ea
 int lastPrintTime = 0;  // The last time that we printed to monitor
 
 // Number of milliseconds to wait between transmissions
-int canSendInterval = 50;
+int canSendInterval = 25;
 // Definition to log the last time that a CAN message was sent
 int lastCanSendTime = 0;
 
