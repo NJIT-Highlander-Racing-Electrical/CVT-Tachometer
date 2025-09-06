@@ -68,9 +68,6 @@ const int primaryRPM_ID = 0x01;
 const int secondaryRPM_ID = 0x02;
 const int primaryTemperature_ID = 0x03;
 const int secondaryTemperature_ID = 0x04;
-const int statusCVT_ID = 0x5A;
-
-uint8_t statusCVT = 0b11111111;
 
 // Task to run on second core (dual-core processing)
 TaskHandle_t Task1;
@@ -109,13 +106,13 @@ unsigned long lastPrimTempReading = 0;  // Variable for last time temperature se
 int primTempReading = 0;                // Analog reading from temp sensor
 float primTempVoltage = 0;              // Calculated voltage based on analog reading
 float primTempC = 0;
-float primaryTemperature = 0;
+int primaryTemperature = 0;
 
 unsigned long lastSecTempReading = 0;  // Variable for last time temperature sensor has been polled
 int secTempReading = 0;                // Analog reading from temp sensor
 float secTempVoltage = 0;              // Calculated voltage based on analog reading
 float secTempC = 0;
-float secondaryTemperature = 0;
+int secondaryTemperature = 0;
 
 void setup() {
 
@@ -192,8 +189,6 @@ void Task1code(void* pvParameters) {
       delay(1);  // Delay 1ms to allow watchdog to reset
     }
 
-    //checkStatus();
 
-    //checkForRTR();
   }
 }
