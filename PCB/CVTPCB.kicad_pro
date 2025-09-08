@@ -52,7 +52,9 @@
         }
       },
       "diff_pair_dimensions": [],
-      "drc_exclusions": [],
+      "drc_exclusions": [
+        "lib_footprint_mismatch|135600000|79710000|a1310701-af3d-4871-8d72-19d0c7925454|00000000-0000-0000-0000-000000000000"
+      ],
       "meta": {
         "version": 2
       },
@@ -216,7 +218,11 @@
     "equivalence_files": []
   },
   "erc": {
-    "erc_exclusions": [],
+    "erc_exclusions": [
+      "pin_to_pin|1371600|1016000|6d1305fa-4513-47d0-99a5-3c89dde679aa|2ac660d4-eaf2-42f0-ae4d-de123eb21265|/919628b6-09d4-4730-8c94-2b55dbb3cc38|/919628b6-09d4-4730-8c94-2b55dbb3cc38|/919628b6-09d4-4730-8c94-2b55dbb3cc38",
+      "power_pin_not_driven|1739900|279400|1c416310-2ac3-4f56-b1ea-e9190babfb53|00000000-0000-0000-0000-000000000000|/919628b6-09d4-4730-8c94-2b55dbb3cc38|/919628b6-09d4-4730-8c94-2b55dbb3cc38|",
+      "power_pin_not_driven|2781300|279400|23395f75-7109-4a65-ac32-2cd6fe5f5a58|00000000-0000-0000-0000-000000000000|/919628b6-09d4-4730-8c94-2b55dbb3cc38|/919628b6-09d4-4730-8c94-2b55dbb3cc38|"
+    ],
     "meta": {
       "version": 0
     },
