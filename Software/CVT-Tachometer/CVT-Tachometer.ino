@@ -1,27 +1,16 @@
 /*
 *
-* This program uses two infrared emitter/receiver pairs to detect revolutions on the primary and
-* secondary pulleys of the CVT. The elapsed time between revolutions is used to calculate revolutions
-* per minute, and this data is sent over CAN to the rest of the vehicle's subsystems.
+* This program uses two infrared emitter/receiver pairs with comparators to detect revolutions on the primary and
+* secondary pulleys of the CVT. The analog reading from the infrared receiver configuration (which acts as a variable
+* resistor, so it is wired as a voltage divider) is passed through a comparator with a known reference. Then, this comparator
+* output is set up as an interrupt input to the ESP32, and each CVT reading will trigger the ISR. Calculations are done to
+* determine the RPM based on the elapsed time between readings, and this data is sent over CAN to the rest of the vehicle's subsystems.
 *
 * There is also a TMP36 temperature sensor on each module that reports ambient temperature inside of the CVT case.
 *
-* The main core of the ESP32 is dedicated to reading primary RPM, reading primary temperature, and printing data to the Serial Monitor
-*
-* The second core of the ESP32 is dedicated to reading secondary RPM, reading secondary temperature, and sending data over CAN-Bus
-*
-* NOTE: This file does not use the shared BajaCAN.h, as it requires the use of both cores
-*
-* NOTE: Based on the resistor value in the IR photodiode voltage divider, it is possible for the input to the analog pin to exceed 3.3V
-* Ensure this does not happen, because if it does, it can interfere with the temperature sensor analog reading or cause damage to hardware
-* With a properly set fixed resistor, this should not be an issue, but setting the potentiometer too high would allow the voltage at the
-* center tap of the voltage divider to exceed 3.3V.
-*
 */
 
-#include "src/libraries/arduino-CAN/src/CAN.h"
-
-
+#include "BajaCAN.h"
 
 // Set DEBUG to false for final program; Serial is just used for troubleshooting
 #define DEBUG false
@@ -29,166 +18,214 @@
 #define DEBUG_SERIAL \
   if (DEBUG) Serial
 
+#define PRIMARY_IR 32    // Primary Comparator Output
+#define PRIMARY_TEMP 33  // Primary TMP36 Sensor pin
 
-#define PRIMARY_IR 34  // Use this definition when using the fixed resistor IR inpu
-//#define PRIMARY_IR 33    // Use this definition when using the potentiometer IR input
-#define PRIMARY_TEMP 35  // Primary TMP36 Sensor pin
-
-#define SECONDARY_IR 13  // Use this definition when using the fixed resistor IR input
-//#define SECONDARY_IR 4     // Use this definition when using the potentiometer IR input
-#define SECONDARY_TEMP 27  // Secondary TMP36 Sensor pin
-
-// Definitions for all CAN setup parameters
-#define CAN_BAUD_RATE 500E3
-#define CAN_TX_GPIO 25
-#define CAN_RX_GPIO 26
-
+#define SECONDARY_IR 27    // Secondary Comparator Output
+#define SECONDARY_TEMP 14  // Secondary TMP36 Sensor pin
 
 // USER-DEFINED PARAMETERS
+const int debugPrintInterval = 100;   // Rate at which we print to Serial monitor
+const int tempUpdateFrequency = 500;  // Get a new temperature reading every 500 milliseconds
+const int numPrimaryTargets = 2;      // Number of independent sensing targets on CVT primary
+const int numSecondaryTargets = 2;    // Number of independent sensing targets on CVT secondary
 
-const int debugPrintInterval = 0;      // Rate at which we print to Serial monitor. This is to reduce calculation issues
-const int timeoutThreshold = 1000;     // If there are no readings in timeoutThreshold milliseconds, reset RPM to zero
-const int tempUpdateFrequency = 2500;  // Get a new temperature reading every 2500 milliseconds
-const int numPrimaryTargets = 2;       // Number of independent sensing targets on CVT primary
-const int numSecondaryTargets = 2;     // Number of independent sensing targets on CVT secondary
-const int numIRSamples = 35;           // Number of samples that we take from each ADC pin for determining the analog IR value
+const int timeoutThreshold = 1000000;  // If there are no readings in timeoutThreshold microseconds, reset RPM to zero
 
 // END
 
+// Serial Print timing variables (milliseconds)
+int lastPrintTime = 0;
 
-int lastPrintTime = 0;  // The last time that we printed to monitor
+// Primary timing variables (microseconds)
+volatile unsigned long currentPrimaryReadTime = 0;
+volatile unsigned long lastPrimaryReadTime = 0;
 
-// Number of milliseconds to wait between transmissions
-int canSendInterval = 25;
-// Definition to log the last time that a CAN message was sent
-int lastCanSendTime = 0;
+// Secondary timing variables (microseconds)
+volatile unsigned long currentSecondaryReadTime = 0;
+volatile unsigned long lastSecondaryReadTime = 0;
 
-// CVT Tachometer CAN IDs
-const int primaryRPM_ID = 0x01;
-const int secondaryRPM_ID = 0x02;
-const int primaryTemperature_ID = 0x03;
-const int secondaryTemperature_ID = 0x04;
+// Temperature timing variables (milliseconds)
+unsigned long lastPrimTempReadTime = 0;
+unsigned long lastSecTempReadTime = 0;
 
-// Task to run on second core (dual-core processing)
-TaskHandle_t Task1;
+// Update flags (set in ISR)
+volatile bool primaryUpdateFlag = false;
+volatile bool secondaryUpdateFlag = false;
 
-// Initialize bounds of sensor readings
-// These will be continuously updated as the IR sensors gather new data
-// The lower third and upper third of this min/max will be used as LOW and HIGH thresholds
-int primaryMinReading = 0;
-int primaryMaxReading = 0;
-int secondaryMinReading = 0;
-int secondaryMaxReading = 0;
+// Timeout flags; these get set if the readings timed out so we ignore the first calculation back
+bool primaryTimedOut = false;
+bool secondaryTimedOut = false;
 
-// Initialize these thresholds at zero; they will be set accordingly later
-int primaryLowerThreshold = 0;
-int primaryUpperThreshold = 0;
-int secondaryLowerThreshold = 0;
-int secondaryUpperThreshold = 0;
 
-int primaryValue = 0;  // value read from IR sensor
-unsigned long currentPrimaryReadTime = 0;
-unsigned long lastPrimaryReadTime = 0;
-int primaryRPM = 0;  // calculated RPM value based on elapsed time between readings
+// Function Prototypes
+void primaryISR();
+void readPrimaryTemp();
+void checkPrimaryTimeout();
 
-int secondaryValue = 0;  // value read from IR sensor
-unsigned long currentSecondaryReadTime = 0;
-unsigned long lastSecondaryReadTime = 0;
-bool ignoreNextSecondaryReading = false;  // In case we print to CAN/wait for watchdog and may have missed a reading
-int secondaryRPM = 0;                     // calculated RPM value based on elapsed time between readings
+void readSecondaryTemp();
+void secondaryISR();
+void checkSecondaryTimeout();
 
-// Makes sure that the input goes LOW before counting another revolution
-// Prevents double counting of revolution
-bool primaryGoneLow = true;
-bool secondaryGoneLow = true;
-
-unsigned long lastPrimTempReading = 0;  // Variable for last time temperature sensor has been polled
-int primTempReading = 0;                // Analog reading from temp sensor
-float primTempVoltage = 0;              // Calculated voltage based on analog reading
-float primTempC = 0;
-int primaryTemperature = 0;
-
-unsigned long lastSecTempReading = 0;  // Variable for last time temperature sensor has been polled
-int secTempReading = 0;                // Analog reading from temp sensor
-float secTempVoltage = 0;              // Calculated voltage based on analog reading
-float secTempC = 0;
-int secondaryTemperature = 0;
+void printData();
 
 void setup() {
+  Serial.begin(460800);
 
-  CAN.setPins(CAN_RX_GPIO, CAN_TX_GPIO);
-  if (!CAN.begin(CAN_BAUD_RATE)) {
-    Serial.println("Starting CAN failed!");
-    while (1)
-      ;
-  } else {
-    Serial.println("CAN Initialized");
-  }
+  // Initialize CAN using BajaCAN. We want to send every 25 milliseconds (40Hz send rate)
+  setupCAN(CVT, 25);
 
-
-  DEBUG_SERIAL.begin(115200);
-
+  // Configure pins
   pinMode(PRIMARY_IR, INPUT);
   pinMode(PRIMARY_TEMP, INPUT);
   pinMode(SECONDARY_IR, INPUT);
   pinMode(SECONDARY_TEMP, INPUT);
 
+  // Attach interrupts on rising edge
+  attachInterrupt(digitalPinToInterrupt(PRIMARY_IR), primaryISR, RISING);
+  attachInterrupt(digitalPinToInterrupt(SECONDARY_IR), secondaryISR, RISING);
 
-  //create a task that will be executed in the Task1code() function, with priority 1 and executed on core 0
-  xTaskCreatePinnedToCore(
-    Task1code, /* Task function. */
-    "Task1",   /* name of task. */
-    2000,      /* Stack size of task */
-    NULL,      /* parameter of the task */
-    1,         /* priority of the task */
-    &Task1,    /* Task handle to keep track of created task */
-    0);        /* pin task to core 0 */
-  delay(500);
-
-  // Establish a starting point for min and max
-  // These will be updated later as new min's and max's are found
-  primaryMinReading = analogRead(PRIMARY_IR);
-  primaryMaxReading = analogRead(PRIMARY_IR);
-  secondaryMinReading = analogRead(SECONDARY_IR);
-  secondaryMaxReading = analogRead(SECONDARY_IR);
+  DEBUG_SERIAL.println("CVT Tachometer Initialized");
 }
 
-
-
-
-// Main loop
 void loop() {
 
-  readPrimary();
+  // Check to see if either CVT reading timed out
+  checkPrimaryTimeout();
+  checkSecondaryTimeout();
 
-  if ((millis() - lastPrintTime) > debugPrintInterval) {
+  // If primaryUpdateFlag was set in the ISR, we have a new revolution and must calculate RPM
+  if (primaryUpdateFlag) {
+
+    primaryUpdateFlag = false;
+
+    if (!primaryTimedOut) {  // Only do this RPM calculation if we have a valid previous reading
+      unsigned long elapsed = currentPrimaryReadTime - lastPrimaryReadTime;
+      if (elapsed > 0) {  // This will prevent divide-by-zero
+        primaryRPM = (60000000.0 / elapsed) / numPrimaryTargets;
+      }
+    }
+
+    primaryTimedOut = false;
+  }
+
+  // If secondaryUpdateFlag was set in the ISR, we have a new revolution and must calculate RPM
+  if (secondaryUpdateFlag) {
+
+    secondaryUpdateFlag = false;
+
+    if (!secondaryTimedOut) {  // Only do this RPM calculation if we have a valid previous reading
+      // Calculate RPM based on time between pulses
+      unsigned long elapsed = currentSecondaryReadTime - lastSecondaryReadTime;
+      if (elapsed > 0) {  // This will prevent divide-by-zero
+        secondaryRPM = (60000000.0 / elapsed) / numSecondaryTargets;
+      }
+    }
+
+    secondaryTimedOut = false;
+  }
+
+  // Read temperatures
+  readPrimaryTemp();
+  readSecondaryTemp();
+
+  // Print debug data
+  if (DEBUG && (millis() - lastPrintTime) > debugPrintInterval) {
     lastPrintTime = millis();
     printData();
   }
 }
 
 
+/*
+*
+*   FUNCTION DEFINITIONS
+*
+*/
 
+void primaryISR() {
+  lastPrimaryReadTime = currentPrimaryReadTime;
+  currentPrimaryReadTime = micros();
+  primaryUpdateFlag = true;
+}
 
+void readPrimaryTemp() {
+  if ((millis() - lastPrimTempReadTime) > tempUpdateFrequency) {
+    long total = 0;
 
-// Task 1 executes on secondary core of ESP32 and solely looks at the secondary of the CVT
-// All other processing is done on primary core
-void Task1code(void* pvParameters) {
-  Serial.print("Task1 running on core ");
-  Serial.println(xPortGetCoreID());
-
-  for (;;) {
-
-
-    readSecondary();
-
-
-    if ((millis() - lastCanSendTime) > canSendInterval) {
-      lastCanSendTime = millis();
-      sendCAN();
-      delay(1);  // Delay 1ms to allow watchdog to reset
+    // Average 10 readings
+    for (int i = 0; i < 10; i++) {
+      total += analogRead(PRIMARY_TEMP);
     }
 
+    // Calculate the average reading
+    int primTempReading = total / 10;
 
+    float primTempVoltage = (float)primTempReading * 3.3;
+    primTempVoltage /= 4095.0;
+    float primTempC = (primTempVoltage - 0.5) * 100;      // converting from 10 mv per degree with 500 mV offset
+    primaryTemperature = (primTempC * 9.0 / 5.0) + 32.0;  // determining temperature in F from C
+
+    lastPrimTempReadTime = millis();
   }
+}
+
+void checkPrimaryTimeout() {
+  // Check for timeout and reset RPM to zero if no pulses
+  if ((micros() - lastPrimaryReadTime) > timeoutThreshold) {
+    primaryRPM = 0;
+    primaryTimedOut = true;
+  }
+}
+
+void secondaryISR() {
+  lastSecondaryReadTime = currentSecondaryReadTime;
+  currentSecondaryReadTime = micros();
+  secondaryUpdateFlag = true;
+}
+
+void readSecondaryTemp() {
+  if ((millis() - lastSecTempReadTime) > tempUpdateFrequency) {
+    long total = 0;
+
+    // Average 10 readings
+    for (int i = 0; i < 10; i++) {
+      total += analogRead(SECONDARY_TEMP);
+    }
+
+    // Calculate the average reading
+    int secTempReading = total / 10;
+
+    float secTempVoltage = (float)secTempReading * 3.3;
+    secTempVoltage /= 4095.0;
+    float secTempC = (secTempVoltage - 0.5) * 100;   // converting from 10 mv per degree with 500 mV offset
+    secondaryTemperature = (secTempC * 9.0 / 5.0) + 32.0;  // determining temperature in F from C
+
+    lastSecTempReadTime = millis();
+  }
+}
+
+void checkSecondaryTimeout() {
+  // Check for timeout and reset RPM to zero if no pulses
+  if ((micros() - lastSecondaryReadTime) > timeoutThreshold) {
+    secondaryRPM = 0;
+    secondaryTimedOut = true;
+  }
+}
+
+void printData() {
+  DEBUG_SERIAL.print("pRpm:");
+  DEBUG_SERIAL.print(primaryRPM);
+  DEBUG_SERIAL.print(", ");
+
+  DEBUG_SERIAL.print("pTemp:");
+  DEBUG_SERIAL.print(primaryTemperature);
+  DEBUG_SERIAL.print(", ");
+
+  DEBUG_SERIAL.print("sRpm:");
+  DEBUG_SERIAL.print(secondaryRPM);
+  DEBUG_SERIAL.print(", ");
+
+  DEBUG_SERIAL.print("sTemp:");
+  DEBUG_SERIAL.println(secondaryTemperature);
 }

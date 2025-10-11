@@ -469,7 +469,7 @@
       "plot": "",
       "pos_files": "",
       "specctra_dsn": "",
-      "step": "../CVTPCB.step",
+      "step": "../../../../Downloads/CVTPCB.step",
       "svg": "",
       "vrml": ""
     },
