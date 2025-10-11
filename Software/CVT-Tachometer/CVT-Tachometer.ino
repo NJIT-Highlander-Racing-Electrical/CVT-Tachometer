@@ -13,7 +13,7 @@
 #include "BajaCAN.h"
 
 // Set DEBUG to false for final program; Serial is just used for troubleshooting
-#define DEBUG false
+#define DEBUG true
 
 #define DEBUG_SERIAL \
   if (DEBUG) Serial
@@ -102,7 +102,11 @@ void loop() {
     if (!primaryTimedOut) {  // Only do this RPM calculation if we have a valid previous reading
       unsigned long elapsed = currentPrimaryReadTime - lastPrimaryReadTime;
       if (elapsed > 0) {  // This will prevent divide-by-zero
-        primaryRPM = (60000000.0 / elapsed) / numPrimaryTargets;
+        int calculatedRPM = (60000000.0 / elapsed) / numPrimaryTargets;
+
+        if (calculatedRPM < 10000) { // accounts for possibility of accidental back-to-back readings on that would never occur (like 120,000 RPM)
+            primaryRPM = calculatedRPM;
+          }
       }
     }
 
@@ -118,7 +122,11 @@ void loop() {
       // Calculate RPM based on time between pulses
       unsigned long elapsed = currentSecondaryReadTime - lastSecondaryReadTime;
       if (elapsed > 0) {  // This will prevent divide-by-zero
-        secondaryRPM = (60000000.0 / elapsed) / numSecondaryTargets;
+        int calculatedRPM = (60000000.0 / elapsed) / numSecondaryTargets;
+
+        if (calculatedRPM < 10000) { // accounts for possibility of accidental back-to-back readings on that would never occur (like 120,000 RPM)
+            secondaryRPM = calculatedRPM;
+          }
       }
     }
 
@@ -198,7 +206,7 @@ void readSecondaryTemp() {
 
     float secTempVoltage = (float)secTempReading * 3.3;
     secTempVoltage /= 4095.0;
-    float secTempC = (secTempVoltage - 0.5) * 100;   // converting from 10 mv per degree with 500 mV offset
+    float secTempC = (secTempVoltage - 0.5) * 100;         // converting from 10 mv per degree with 500 mV offset
     secondaryTemperature = (secTempC * 9.0 / 5.0) + 32.0;  // determining temperature in F from C
 
     lastSecTempReadTime = millis();
