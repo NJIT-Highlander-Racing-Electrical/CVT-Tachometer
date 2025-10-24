@@ -7,10 +7,12 @@
 * determine the RPM based on the elapsed time between readings, and this data is sent over CAN to the rest of the vehicle's subsystems.
 *
 * There is also a TMP36 temperature sensor on each module that reports ambient temperature inside of the CVT case.
+* Additionally, a GY-906 MLX90614 infrared temperature sensor reads the CVT belt temperature over I2C.
 *
 */
 
 #include "BajaCAN.h"
+#include <Wire.h>
 
 // Set DEBUG to false for final program; Serial is just used for troubleshooting
 #define DEBUG true
@@ -24,13 +26,24 @@
 #define SECONDARY_IR 27    // Secondary Comparator Output
 #define SECONDARY_TEMP 14  // Secondary TMP36 Sensor pin
 
+// MLX90614 I2C Configuration
+#define MLX90614_I2C_ADDR 0x5A
+#define MLX90614_OBJECT_TEMP 0x07  // Object temperature register
+#define I2C_SDA 21  // ESP32 default SDA pin
+#define I2C_SCL 22  // ESP32 default SCL pin
+
 // USER-DEFINED PARAMETERS
-const int debugPrintInterval = 100;   // Rate at which we print to Serial monitor
+const int debugPrintInterval = 100;   // Rate at which we print to Serial monitor (increased from 20 to reduce interference)
 const int tempUpdateFrequency = 500;  // Get a new temperature reading every 500 milliseconds
 const int numPrimaryTargets = 2;      // Number of independent sensing targets on CVT primary
 const int numSecondaryTargets = 2;    // Number of independent sensing targets on CVT secondary
 
 const int timeoutThreshold = 1000000;  // If there are no readings in timeoutThreshold microseconds, reset RPM to zero
+
+// Debounce time in microseconds - minimum time between valid pulses
+// 10000us = 10ms corresponds to ~3000 RPM max with 2 targets
+// Increase this if you still see oscillation at idle
+const unsigned long debounceTimeMicros = 10000;
 
 // END
 
@@ -48,6 +61,7 @@ volatile unsigned long lastSecondaryReadTime = 0;
 // Temperature timing variables (milliseconds)
 unsigned long lastPrimTempReadTime = 0;
 unsigned long lastSecTempReadTime = 0;
+unsigned long lastBeltTempReadTime = 0;
 
 // Update flags (set in ISR)
 volatile bool primaryUpdateFlag = false;
@@ -56,6 +70,13 @@ volatile bool secondaryUpdateFlag = false;
 // Timeout flags; these get set if the readings timed out so we ignore the first calculation back
 bool primaryTimedOut = false;
 bool secondaryTimedOut = false;
+
+// Moving average filter for RPM smoothing
+const int RPM_FILTER_SIZE = 5;
+int primaryRPMBuffer[RPM_FILTER_SIZE] = {0};
+int secondaryRPMBuffer[RPM_FILTER_SIZE] = {0};
+int primaryBufferIndex = 0;
+int secondaryBufferIndex = 0;
 
 
 // Function Prototypes
@@ -67,11 +88,16 @@ void readSecondaryTemp();
 void secondaryISR();
 void checkSecondaryTimeout();
 
+void readBeltTemp();
+
 void printData();
 
 void setup() {
   Serial.begin(460800);
 
+  // Initialize I2C for MLX90614
+  Wire.begin(I2C_SDA, I2C_SCL);
+  
   // Initialize CAN using BajaCAN. We want to send every 25 milliseconds (40Hz send rate)
   setupCAN(CVT, 25);
 
@@ -80,6 +106,10 @@ void setup() {
   pinMode(PRIMARY_TEMP, INPUT);
   pinMode(SECONDARY_IR, INPUT);
   pinMode(SECONDARY_TEMP, INPUT);
+
+  // Initialize timing variables to prevent garbage first calculation
+  currentPrimaryReadTime = micros();
+  currentSecondaryReadTime = micros();
 
   // Attach interrupts on rising edge
   attachInterrupt(digitalPinToInterrupt(PRIMARY_IR), primaryISR, RISING);
@@ -104,9 +134,29 @@ void loop() {
       if (elapsed > 0) {  // This will prevent divide-by-zero
         int calculatedRPM = (60000000.0 / elapsed) / numPrimaryTargets;
 
-        if (calculatedRPM < 10000) { // accounts for possibility of accidental back-to-back readings on that would never occur (like 120,000 RPM)
-            primaryRPM = calculatedRPM;
+        if (calculatedRPM < 6000) { // accounts for possibility of accidental back-to-back readings on that would never occur (like 120,000 RPM)
+          // Add to moving average buffer
+          primaryRPMBuffer[primaryBufferIndex] = calculatedRPM;
+          primaryBufferIndex = (primaryBufferIndex + 1) % RPM_FILTER_SIZE;
+          
+          // Calculate median of buffer to reject outliers
+          int sortedBuffer[RPM_FILTER_SIZE];
+          memcpy(sortedBuffer, primaryRPMBuffer, sizeof(primaryRPMBuffer));
+          
+          // Simple bubble sort
+          for (int i = 0; i < RPM_FILTER_SIZE - 1; i++) {
+            for (int j = 0; j < RPM_FILTER_SIZE - i - 1; j++) {
+              if (sortedBuffer[j] > sortedBuffer[j + 1]) {
+                int temp = sortedBuffer[j];
+                sortedBuffer[j] = sortedBuffer[j + 1];
+                sortedBuffer[j + 1] = temp;
+              }
+            }
           }
+          
+          // Use median value (middle of sorted array)
+          primaryRPM = sortedBuffer[RPM_FILTER_SIZE / 2];
+        }
       }
     }
 
@@ -124,9 +174,29 @@ void loop() {
       if (elapsed > 0) {  // This will prevent divide-by-zero
         int calculatedRPM = (60000000.0 / elapsed) / numSecondaryTargets;
 
-        if (calculatedRPM < 10000) { // accounts for possibility of accidental back-to-back readings on that would never occur (like 120,000 RPM)
-            secondaryRPM = calculatedRPM;
+        if (calculatedRPM < 6000) { // accounts for possibility of accidental back-to-back readings on that would never occur (like 120,000 RPM)
+          // Add to moving average buffer
+          secondaryRPMBuffer[secondaryBufferIndex] = calculatedRPM;
+          secondaryBufferIndex = (secondaryBufferIndex + 1) % RPM_FILTER_SIZE;
+          
+          // Calculate median of buffer to reject outliers
+          int sortedBuffer[RPM_FILTER_SIZE];
+          memcpy(sortedBuffer, secondaryRPMBuffer, sizeof(secondaryRPMBuffer));
+          
+          // Simple bubble sort
+          for (int i = 0; i < RPM_FILTER_SIZE - 1; i++) {
+            for (int j = 0; j < RPM_FILTER_SIZE - i - 1; j++) {
+              if (sortedBuffer[j] > sortedBuffer[j + 1]) {
+                int temp = sortedBuffer[j];
+                sortedBuffer[j] = sortedBuffer[j + 1];
+                sortedBuffer[j + 1] = temp;
+              }
+            }
           }
+          
+          // Use median value (middle of sorted array)
+          secondaryRPM = sortedBuffer[RPM_FILTER_SIZE / 2];
+        }
       }
     }
 
@@ -136,6 +206,7 @@ void loop() {
   // Read temperatures
   readPrimaryTemp();
   readSecondaryTemp();
+  readBeltTemp();
 
   // Print debug data
   if (DEBUG && (millis() - lastPrintTime) > debugPrintInterval) {
@@ -152,8 +223,15 @@ void loop() {
 */
 
 void primaryISR() {
+  unsigned long now = micros();
+  
+  // Debounce: ignore pulses that occur too quickly (noise/bounce rejection)
+  if (now - currentPrimaryReadTime < debounceTimeMicros) {
+    return;
+  }
+  
   lastPrimaryReadTime = currentPrimaryReadTime;
-  currentPrimaryReadTime = micros();
+  currentPrimaryReadTime = now;
   primaryUpdateFlag = true;
 }
 
@@ -187,8 +265,15 @@ void checkPrimaryTimeout() {
 }
 
 void secondaryISR() {
+  unsigned long now = micros();
+  
+  // Debounce: ignore pulses that occur too quickly (noise/bounce rejection)
+  if (now - currentSecondaryReadTime < debounceTimeMicros) {
+    return;
+  }
+  
   lastSecondaryReadTime = currentSecondaryReadTime;
-  currentSecondaryReadTime = micros();
+  currentSecondaryReadTime = now;
   secondaryUpdateFlag = true;
 }
 
@@ -221,6 +306,41 @@ void checkSecondaryTimeout() {
   }
 }
 
+void readBeltTemp() {
+  if ((millis() - lastBeltTempReadTime) > tempUpdateFrequency) {
+    // Request object temperature from MLX90614
+    Wire.beginTransmission(MLX90614_I2C_ADDR);
+    Wire.write(MLX90614_OBJECT_TEMP);
+    
+    if (Wire.endTransmission(false) == 0) {
+      // Request 3 bytes (2 data bytes + 1 PEC byte)
+      Wire.requestFrom(MLX90614_I2C_ADDR, 3);
+      
+      if (Wire.available() >= 2) {
+        // Read temperature data (LSB first)
+        uint8_t tempLow = Wire.read();
+        uint8_t tempHigh = Wire.read();
+        Wire.read(); // Read and discard PEC byte
+        
+        // Combine bytes into 16-bit value
+        uint16_t tempRaw = (tempHigh << 8) | tempLow;
+        
+        // Convert to Kelvin (resolution is 0.02K per LSB)
+        float tempK = tempRaw * 0.02;
+        
+        // Convert Kelvin to Celsius then to Fahrenheit
+        float tempC = tempK - 273.15;
+        float tempF = (tempC * 9.0 / 5.0) + 32.0;
+        
+        // Store as integer in Fahrenheit
+        beltTemperature = (int)tempF;
+      }
+    }
+    
+    lastBeltTempReadTime = millis();
+  }
+}
+
 void printData() {
   DEBUG_SERIAL.print("pRpm:");
   DEBUG_SERIAL.print(primaryRPM);
@@ -235,5 +355,9 @@ void printData() {
   DEBUG_SERIAL.print(", ");
 
   DEBUG_SERIAL.print("sTemp:");
-  DEBUG_SERIAL.println(secondaryTemperature);
+  DEBUG_SERIAL.print(secondaryTemperature);
+  DEBUG_SERIAL.print(", ");
+
+  DEBUG_SERIAL.print("beltTemp:");
+  DEBUG_SERIAL.println(beltTemperature);
 }

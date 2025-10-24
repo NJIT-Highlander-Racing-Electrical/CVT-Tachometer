@@ -1,6 +1,6 @@
 /*********************************************************************************
 *
-*   BajaCAN.h  -- Version 2.2.1 - Native ESP32 CAN Driver
+*   BajaCAN.h  -- Version 2.2.2 - Native ESP32 CAN Driver
 *
 *   The goal of this BajaCAN header/driver is to enable all subsystems throughout
 *   the vehicle to use the same variables, data types, and functions. That way,
@@ -115,6 +115,7 @@ const int primaryRPM_ID = 0x01;
 const int secondaryRPM_ID = 0x02;
 const int primaryTemperature_ID = 0x03;
 const int secondaryTemperature_ID = 0x04;
+const int beltTemperature_ID = 0x05;
 const int frontLeftWheelSpeed_ID = 0x0B;
 const int frontRightWheelSpeed_ID = 0x0C;
 const int rearLeftWheelSpeed_ID = 0x0D;
@@ -157,6 +158,7 @@ volatile int primaryRPM;
 volatile int secondaryRPM;
 volatile int primaryTemperature;
 volatile int secondaryTemperature;
+volatile int beltTemperature;
 volatile float frontLeftWheelSpeed;
 volatile float frontRightWheelSpeed;
 volatile float rearLeftWheelSpeed;
@@ -291,6 +293,9 @@ void CAN_Task_Code(void *pvParameters) {
           case secondaryTemperature_ID:
             secondaryTemperature = parseIntFromBytes(data, dataLength);
             break;
+          case beltTemperature_ID:
+            beltTemperature = parseIntFromBytes(data, dataLength);
+          break;
           case frontLeftWheelSpeed_ID:
             frontLeftWheelSpeed = parseFloatFromBytes(data, dataLength);
             break;
@@ -419,6 +424,7 @@ void CAN_Task_Code(void *pvParameters) {
           sendCANInt(secondaryRPM_ID, secondaryRPM);
           sendCANInt(primaryTemperature_ID, primaryTemperature);
           sendCANInt(secondaryTemperature_ID, secondaryTemperature);
+          sendCANInt(beltTemperature_ID, beltTemperature);
           break;
 
         case WHEEL_SPEED:
