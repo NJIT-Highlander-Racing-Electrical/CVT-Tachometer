@@ -35,8 +35,8 @@
 // USER-DEFINED PARAMETERS
 const int debugPrintInterval = 100;   // Rate at which we print to Serial monitor (increased from 20 to reduce interference)
 const int tempUpdateFrequency = 500;  // Get a new temperature reading every 500 milliseconds
-const int numPrimaryTargets = 2;      // Number of independent sensing targets on CVT primary
-const int numSecondaryTargets = 2;    // Number of independent sensing targets on CVT secondary
+const int numPrimaryTargets = 8;      // Number of independent sensing targets on CVT primary
+const int numSecondaryTargets = 3;    // Number of independent sensing targets on CVT secondary
 
 const int timeoutThreshold = 1000000;  // If there are no readings in timeoutThreshold microseconds, reset RPM to zero
 
