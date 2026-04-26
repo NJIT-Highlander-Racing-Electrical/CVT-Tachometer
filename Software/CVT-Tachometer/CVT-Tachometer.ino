@@ -5,6 +5,7 @@
 
 #include "BajaCAN.h"
 #include <Wire.h>
+#include <Adafruit_MLX90640.h>
 
 // Set DEBUG to false for final program
 #define DEBUG true
@@ -18,9 +19,7 @@
 #define SECONDARY_IR 27    // Secondary Comparator Output
 #define SECONDARY_TEMP 14  // Secondary TMP36 Sensor pin
 
-// MLX90614 I2C Configuration
-#define MLX90614_I2C_ADDR 0x5A
-#define MLX90614_OBJECT_TEMP 0x07
+// MLX90640 I2C Configuration
 #define I2C_SDA 21
 #define I2C_SCL 22
 
@@ -33,10 +32,6 @@ const int numSecondaryTargets = 3;
 // Timeout if no pulse in 1 second (1,000,000 microseconds)
 const unsigned long timeoutThreshold = 1000000;
 
-// Debounce time - adjusted for realistic RPM ranges
-// Primary: 8 targets, max ~4000 RPM = 533 pulses/sec = 1875us between pulses
-// Secondary: 3 targets, max ~4000 RPM = 200 pulses/sec = 5000us between pulses
-// Set debounce to 1500us to allow fast speeds while rejecting noise
 const unsigned long debounceTimeMicros = 1500;
 
 // Maximum reasonable RPM to filter out noise spikes
@@ -44,6 +39,11 @@ const int MAX_PRIMARY_RPM = 5000;
 const int MAX_SECONDARY_RPM = 5000;
 
 // END USER PARAMETERS
+
+// MLX90640
+Adafruit_MLX90640 mlx;
+static float thermalFrame[32 * 24];
+bool mlxReady = false;
 
 // Serial Print timing
 int lastPrintTime = 0;
@@ -62,6 +62,7 @@ volatile bool secondaryUpdateFlag = false;
 unsigned long lastPrimTempReadTime = 0;
 unsigned long lastSecTempReadTime = 0;
 unsigned long lastBeltTempReadTime = 0;
+const int beltTempInterval = 1000;
 
 // State flags
 bool primaryIsFirstReading = true;
@@ -75,7 +76,7 @@ int primaryRPMBuffer[RPM_FILTER_SIZE] = {0};
 int secondaryRPMBuffer[RPM_FILTER_SIZE] = {0};
 int primaryBufferIndex = 0;
 int secondaryBufferIndex = 0;
-int primaryBufferCount = 0;  // Track how many samples we have
+int primaryBufferCount = 0;
 int secondaryBufferCount = 0;
 
 // Function Prototypes
@@ -90,12 +91,24 @@ int calculateMedianRPM(int* buffer, int size);
 void printData();
 
 void setup() {
-  Serial.begin(460800);
-  delay(100);
+  Serial.begin(460800); 
+  delay(3000);
 
-  // Initialize I2C for MLX90614
+  // Initialize I2C for MLX90640
   Wire.begin(I2C_SDA, I2C_SCL);
-  
+  Wire.setClock(400000);
+
+  // Initialize MLX90640
+  if (mlx.begin(MLX90640_I2CADDR_DEFAULT, &Wire)) {
+    mlx.setMode(MLX90640_CHESS);
+    mlx.setResolution(MLX90640_ADC_18BIT);
+    mlx.setRefreshRate(MLX90640_2_HZ);
+    mlxReady = true;
+    DEBUG_SERIAL.println("MLX90640 initialized");
+  } else {
+    DEBUG_SERIAL.println("MLX90640 not found — belt temp disabled");
+  }
+
   // Initialize CAN - send every 25ms (40Hz)
   setupCAN(CVT, 25);
 
@@ -268,7 +281,7 @@ void primaryISR() {
   // Debounce: ignore pulses too close together
   unsigned long timeSinceLast = now - currentPrimaryReadTime;
   if (timeSinceLast < debounceTimeMicros) {
-    return;  // Noise/bounce, ignore
+    return;
   }
   
   // Update timing
@@ -283,7 +296,7 @@ void secondaryISR() {
   // Debounce: ignore pulses too close together
   unsigned long timeSinceLast = now - currentSecondaryReadTime;
   if (timeSinceLast < debounceTimeMicros) {
-    return;  // Noise/bounce, ignore
+    return;
   }
   
   // Update timing
@@ -297,11 +310,10 @@ void checkPrimaryTimeout() {
   unsigned long timeSinceLastPulse = currentTime - currentPrimaryReadTime;
   
   if (timeSinceLastPulse > timeoutThreshold) {
-    if (primaryRPM != 0) {  // Only update if not already zero
+    if (primaryRPM != 0) {
       primaryRPM = 0;
-      primaryIgnoreNext = true;  // Ignore next pulse to re-establish baseline
+      primaryIgnoreNext = true;
       
-      // Clear the buffer
       for (int i = 0; i < RPM_FILTER_SIZE; i++) {
         primaryRPMBuffer[i] = 0;
       }
@@ -318,11 +330,10 @@ void checkSecondaryTimeout() {
   unsigned long timeSinceLastPulse = currentTime - currentSecondaryReadTime;
   
   if (timeSinceLastPulse > timeoutThreshold) {
-    if (secondaryRPM != 0) {  // Only update if not already zero
+    if (secondaryRPM != 0) {
       secondaryRPM = 0;
-      secondaryIgnoreNext = true;  // Ignore next pulse to re-establish baseline
+      secondaryIgnoreNext = true;
       
-      // Clear the buffer
       for (int i = 0; i < RPM_FILTER_SIZE; i++) {
         secondaryRPMBuffer[i] = 0;
       }
@@ -337,7 +348,6 @@ void checkSecondaryTimeout() {
 int calculateMedianRPM(int* buffer, int count) {
   if (count == 0) return 0;
   
-  // Create temporary array for sorting
   int sortedBuffer[RPM_FILTER_SIZE];
   memcpy(sortedBuffer, buffer, count * sizeof(int));
   
@@ -352,7 +362,6 @@ int calculateMedianRPM(int* buffer, int count) {
     }
   }
   
-  // Return median value
   return sortedBuffer[count / 2];
 }
 
@@ -360,7 +369,6 @@ void readPrimaryTemp() {
   if ((millis() - lastPrimTempReadTime) > tempUpdateFrequency) {
     long total = 0;
 
-    // Average 10 readings
     for (int i = 0; i < 10; i++) {
       total += analogRead(PRIMARY_TEMP);
     }
@@ -378,7 +386,6 @@ void readSecondaryTemp() {
   if ((millis() - lastSecTempReadTime) > tempUpdateFrequency) {
     long total = 0;
 
-    // Average 10 readings
     for (int i = 0; i < 10; i++) {
       total += analogRead(SECONDARY_TEMP);
     }
@@ -393,29 +400,21 @@ void readSecondaryTemp() {
 }
 
 void readBeltTemp() {
-  if ((millis() - lastBeltTempReadTime) > tempUpdateFrequency) {
-    Wire.beginTransmission(MLX90614_I2C_ADDR);
-    Wire.write(MLX90614_OBJECT_TEMP);
-    
-    if (Wire.endTransmission(false) == 0) {
-      Wire.requestFrom(MLX90614_I2C_ADDR, 3);
-      
-      if (Wire.available() >= 2) {
-        uint8_t tempLow = Wire.read();
-        uint8_t tempHigh = Wire.read();
-        Wire.read(); // Discard PEC byte
-        
-        uint16_t tempRaw = (tempHigh << 8) | tempLow;
-        float tempK = tempRaw * 0.02;
-        float tempC = tempK - 273.15;
-        float tempF = (tempC * 9.0 / 5.0) + 32.0;
-        
-        beltTemperature = (int)tempF;
-      }
-    }
-    
-    lastBeltTempReadTime = millis();
+  if (!mlxReady) return;
+  if ((millis() - lastBeltTempReadTime) < beltTempInterval) return;
+  lastBeltTempReadTime = millis();
+
+  if (mlx.getFrame(thermalFrame) != 0) {
+    DEBUG_SERIAL.println("MLX90640 getFrame failed");
+    return;
   }
+
+  float maxTemp = thermalFrame[0];
+  for (int i = 1; i < 768; i++) {
+    if (thermalFrame[i] > maxTemp) maxTemp = thermalFrame[i];
+  }
+
+  beltTemperature = (int)((maxTemp * 9.0f / 5.0f) + 32.0f);
 }
 
 void printData() {
